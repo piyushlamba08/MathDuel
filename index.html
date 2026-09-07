@@ -1028,6 +1028,16 @@
 
         <div id="players-list"></div>
 
+        <div id="lobby-controls" style="display:none;margin-top:14px">
+          <label class="lbl" id="lobby-mode-label">Game Mode</label>
+          <select class="input-field" id="lobby-difficulty" onchange="changeLobbyMode()">
+            <option value="easy">Easy — Tables & Basic Addition</option>
+            <option value="medium">Medium — Mixed Operations & Squares</option>
+            <option value="hard">Hard — BODMAS, Percentage & Large Multiplications</option>
+          </select>
+          <div class="feedback wait" id="next-round-status">Sab players ke ready hone ka wait ho raha hai...</div>
+        </div>
+
         <button class="btn-secondary" onclick="goHome()" style="margin-top:14px">
           <span>❌ Cancel / Back to Home</span>
         </button>
@@ -1186,6 +1196,7 @@
     let totalTimeTaken = 0;
     let myHistory = []; // records details of each question
     let roundStarting = false;
+    let startedRound = null;
 
     function playerRoles(room) {
       return ['p1', 'p2', 'p3', 'p4'].filter(role => room && room[role]);
@@ -1208,7 +1219,7 @@
     function renderLobby(room) {
       const list = document.getElementById('players-list');
       list.innerHTML = playerRoles(room).map((role, index) =>
-        `<div class="player-joined"><span class="dot green"></span><span>${room[role]} ${index === 0 ? '(Host - Tu)' : '(Player ' + (index + 1) + ')'} ✅</span></div>`
+        `<div class="player-joined"><span class="dot ${room[role + 'ready'] ? 'green' : 'gray'}"></span><span>${room[role]} ${index === 0 ? '(Host - Tu)' : '(Player ' + (index + 1) + ')'} ${room.status === 'waiting_next' ? (room[role + 'ready'] ? '✅ Ready' : '⏳ Waiting') : '✅ Connected'}</span></div>`
       ).join('') + (playerRoles(room).length < 4
         ? '<div class="player-joined"><span class="dot gray"></span><span style="color:var(--text-dim)">Aur players join kar sakte hain...</span></div>'
         : '');
@@ -1221,6 +1232,28 @@
       startButton.querySelector('span').textContent = hasEnoughPlayers
         ? '🎮 Game Start Karo'
         : '⏳ Kam se kam 2 players chahiye';
+
+      const controls = document.getElementById('lobby-controls');
+      const mode = document.getElementById('lobby-difficulty');
+      const modeLabel = document.getElementById('lobby-mode-label');
+      const nextStatus = document.getElementById('next-round-status');
+      const isNextRound = room.status === 'waiting_next';
+      const isHostLobby = myRole === 'p1' && (isNextRound || room.status === 'waiting');
+      controls.style.display = isHostLobby ? 'block' : 'none';
+      if (modeLabel) modeLabel.textContent = isNextRound ? 'Next Game Mode' : 'Game Mode';
+      if (mode && room.diff) mode.value = room.diff;
+      if (nextStatus && isNextRound) {
+        const readyCount = playerRoles(room).filter(role => room[role + 'ready']).length;
+        nextStatus.textContent = `${readyCount}/${playerRoles(room).length} players ready. Sabke ready hone ka wait ho raha hai...`;
+      } else if (nextStatus) {
+        nextStatus.textContent = 'Mode choose karke Game Start Karo.';
+      }
+    }
+
+    function changeLobbyMode() {
+      if (myRole !== 'p1') return;
+      const mode = document.getElementById('lobby-difficulty');
+      if (mode) fbPatch('mathbattle_' + roomCode, { diff: mode.value });
     }
 
     // ── Web Audio Synthesizer (Zero External Dependencies) ──
@@ -1564,6 +1597,10 @@
       clearInterval(pollTimer);
       clearInterval(qTimerInterval);
 
+      const roomRound = room.round || 1;
+      if (startedRound === roomRound && document.getElementById('screen-game').classList.contains('active')) return;
+      startedRound = roomRound;
+
       currentQ = 0;
       myScore = 0;
       answered = false;
@@ -1574,7 +1611,7 @@
       myHistory = [];
 
       totalQ = room.totalQ;
-      window.currentRoomRound = room.round || 1;
+      window.currentRoomRound = roomRound;
       timerPerQ = room.timerPerQ !== undefined ? room.timerPerQ : 10;
       const raw = room.questions;
       questions = Array.isArray(raw) ? raw : Object.values(raw);
@@ -2068,7 +2105,6 @@
         ...resetPlayerFields()
       };
       await fbPatch('mathbattle_' + roomCode, patch);
-      window.currentRoomRound = nextRound;
       roundStarting = false;
     }
 
