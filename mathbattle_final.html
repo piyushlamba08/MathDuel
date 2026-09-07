@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Battle — Piyush vs Nishu</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #f0f0f0; min-height: 100vh; }
+
+  .screen { display: none; padding: 1.25rem; max-width: 480px; margin: 0 auto; }
+  .screen.active { display: block; }
+
+  .logo { text-align: center; padding: 2rem 0 1.5rem; }
+  .logo h1 { font-size: 26px; font-weight: 600; color: #fff; letter-spacing: -0.5px; }
+  .logo p { font-size: 14px; color: #888; margin-top: 4px; }
+  .logo .icon { font-size: 40px; margin-bottom: 8px; }
+
+  .card { background: #1a1a24; border: 1px solid #2a2a38; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; }
+
+  .tab-row { display: flex; gap: 6px; margin-bottom: 1.25rem; background: #111118; border-radius: 10px; padding: 4px; }
+  .tab { flex: 1; padding: 9px; text-align: center; border-radius: 8px; cursor: pointer; font-size: 14px; color: #777; transition: all 0.2s; border: none; background: transparent; font-family: inherit; }
+  .tab.active-tab { background: #6c63ff; color: #fff; font-weight: 500; }
+
+  label.lbl { font-size: 12px; color: #777; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .input-field { width: 100%; padding: 11px 14px; background: #111118; border: 1px solid #2a2a38; border-radius: 10px; font-size: 15px; color: #f0f0f0; font-family: inherit; margin-bottom: 12px; transition: border 0.2s; }
+  .input-field:focus { outline: none; border-color: #6c63ff; }
+  .input-field option { background: #1a1a24; }
+
+  .btn-primary { width: 100%; padding: 13px; background: #6c63ff; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; font-family: inherit; transition: opacity 0.2s, transform 0.1s; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary { width: 100%; padding: 12px; background: transparent; color: #aaa; border: 1px solid #2a2a38; border-radius: 10px; font-size: 15px; cursor: pointer; margin-top: 8px; font-family: inherit; }
+  .btn-secondary:hover { background: #1a1a24; }
+
+  .room-code-box { text-align: center; background: #111118; border-radius: 12px; padding: 1.25rem; margin: 12px 0; }
+  .room-code { font-size: 38px; font-weight: 700; letter-spacing: 8px; color: #6c63ff; font-family: monospace; }
+  .room-code-hint { font-size: 12px; color: #666; margin-top: 8px; }
+
+  .scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .player-card { background: #1a1a24; border: 1px solid #2a2a38; border-radius: 14px; padding: 1rem; text-align: center; transition: all 0.3s; }
+  .player-card.mine { border-color: #6c63ff; background: #1e1b3a; }
+  .player-name { font-size: 12px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .player-score { font-size: 32px; font-weight: 700; color: #fff; }
+  .player-q { font-size: 11px; color: #555; margin-top: 3px; }
+  .player-q-big { font-size: 22px; font-weight: 700; color: #a78bfa; margin-top: 4px; }
+  .player-status { font-size: 11px; color: #555; margin-top: 4px; }
+  .player-badge { font-size: 10px; background: #6c63ff22; color: #6c63ff; border-radius: 4px; padding: 2px 6px; margin-top: 4px; display: inline-block; }
+
+  .progress-bar { height: 3px; background: #1a1a24; border-radius: 2px; margin-bottom: 14px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #6c63ff, #a78bfa); border-radius: 2px; transition: width 0.4s; }
+
+  .question-box { background: #1a1a24; border: 1px solid #2a2a38; border-radius: 16px; padding: 1.75rem 1.25rem; text-align: center; margin-bottom: 14px; }
+  .q-num { font-size: 12px; color: #555; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .q-text { font-size: 28px; font-weight: 700; color: #fff; line-height: 1.3; }
+
+  .answer-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .answer-input { flex: 1; padding: 14px; background: #111118; border: 1px solid #2a2a38; border-radius: 10px; font-size: 22px; color: #fff; font-family: monospace; text-align: center; transition: border 0.2s; }
+  .answer-input:focus { outline: none; border-color: #6c63ff; }
+  .submit-btn { padding: 14px 20px; background: #6c63ff; color: #fff; border: none; border-radius: 10px; font-size: 20px; cursor: pointer; font-weight: 700; transition: opacity 0.2s; }
+  .submit-btn:hover { opacity: 0.9; }
+
+  .feedback { text-align: center; padding: 10px; border-radius: 10px; font-size: 14px; font-weight: 500; margin-top: 4px; min-height: 36px; transition: all 0.3s; }
+  .feedback.correct { background: #0f2a1a; color: #4ade80; border: 1px solid #1a4a2a; }
+  .feedback.wrong { background: #2a0f0f; color: #f87171; border: 1px solid #4a1a1a; }
+  .feedback.wait { background: #1a1a00; color: #fbbf24; border: 1px solid #3a3a00; }
+
+  .err { font-size: 13px; color: #f87171; margin-top: 4px; min-height: 18px; }
+
+  .waiting-section { text-align: center; padding: 1.5rem 0; }
+  .dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #6c63ff; margin: 0 3px; animation: bounce 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+
+  .player-joined { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #111118; border-radius: 8px; margin: 4px 0; font-size: 14px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: #4ade80; }
+  .dot.gray { background: #333; }
+
+  .winner-section { text-align: center; padding: 1.5rem 0; }
+  .trophy-big { font-size: 56px; margin-bottom: 10px; }
+  .winner-name { font-size: 26px; font-weight: 700; color: #fff; }
+  .winner-sub { font-size: 14px; color: #888; margin-top: 6px; }
+  .final-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1.5rem 0; }
+  .final-card { background: #111118; border: 1px solid #2a2a38; border-radius: 14px; padding: 1.1rem; text-align: center; }
+  .final-card.winner { border-color: #6c63ff; background: #1e1b3a; }
+  .final-score-big { font-size: 30px; font-weight: 700; color: #fff; }
+  .final-acc { font-size: 12px; color: #666; margin-top: 4px; }
+
+  .copy-btn { background: #1a1a24; border: 1px solid #2a2a38; color: #aaa; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; margin-top: 8px; }
+  .copy-btn:hover { background: #2a2a38; }
+
+  @media (max-width: 360px) { .q-text { font-size: 22px; } .player-score { font-size: 26px; } }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="logo">
+    <div class="icon">🧮</div>
+    <h1>Math Battle</h1>
+    <p>Piyush vs Nishu — kaun jeetega?</p>
+  </div>
+  <div class="card">
+    <div class="tab-row">
+      <button class="tab active-tab" id="tab-create" onclick="switchTab('create')">Room Banao</button>
+      <button class="tab" id="tab-join" onclick="switchTab('join')">Room Join Karo</button>
+    </div>
+
+    <div id="section-create">
+      <label class="lbl">Apna Naam</label>
+      <input class="input-field" id="create-name" placeholder="Piyush ya Nishu" maxlength="12" />
+      <label class="lbl">Questions</label>
+      <select class="input-field" id="q-count">
+        <option value="5">5 Questions</option>
+        <option value="10" selected>10 Questions</option>
+        <option value="15">15 Questions</option>
+        <option value="20">20 Questions</option>
+      </select>
+      <label class="lbl">Difficulty</label>
+      <select class="input-field" id="difficulty">
+        <option value="easy">Easy — Tables & Addition</option>
+        <option value="medium" selected>Medium — Mixed</option>
+        <option value="hard">Hard — BODMAS & Percentage</option>
+      </select>
+      <div class="err" id="create-err"></div>
+      <button class="btn-primary" onclick="createRoom()">🚀 Room Banao</button>
+    </div>
+
+    <div id="section-join" style="display:none">
+      <label class="lbl">Apna Naam</label>
+      <input class="input-field" id="join-name" placeholder="Piyush ya Nishu" maxlength="12" />
+      <label class="lbl">Room Code</label>
+      <input class="input-field" id="join-code" placeholder="6 digit code" maxlength="6"
+        style="text-transform:uppercase;letter-spacing:4px;font-size:20px;text-align:center;font-family:monospace" />
+      <div class="err" id="join-err"></div>
+      <button class="btn-primary" onclick="joinRoom()">➡️ Join Karo</button>
+    </div>
+  </div>
+</div>
+
+<!-- WAITING -->
+<div id="screen-waiting" class="screen">
+  <div class="logo">
+    <div class="icon">⏳</div>
+    <h1>Room Ready!</h1>
+    <p>Dost ko code bhejo</p>
+  </div>
+  <div class="card">
+    <div class="room-code-box">
+      <div class="room-code" id="display-code">------</div>
+      <div class="room-code-hint">Yeh code Nishu ko WhatsApp karo</div>
+      <button class="copy-btn" onclick="copyCode()">📋 Code Copy Karo</button>
+    </div>
+    <div class="waiting-section">
+      <p style="font-size:14px;color:#666;margin-bottom:14px">Dost ke join hone ka wait kar raha hoon...</p>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <div id="players-list" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="scoreboard">
+    <div class="player-card mine" id="card-p1">
+      <div class="player-name" id="name-p1">P1</div>
+      <div class="player-score" id="score-p1">0</div>
+      <div class="player-q">Tera Score</div>
+    </div>
+    <div class="player-card" id="card-p2">
+      <div class="player-name" id="name-p2">P2</div>
+      <div class="player-q-big" id="qtrack-p2">Q0/10</div>
+      <div class="player-status" id="status-p2">Khel raha hai...</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  <div class="question-box">
+    <div class="q-num" id="q-counter">Question 1 / 10</div>
+    <div class="q-text" id="q-display">Loading...</div>
+  </div>
+  <div class="answer-row">
+    <input class="answer-input" id="ans-input" type="number" placeholder="?"
+      onkeydown="if(event.key==='Enter') submitAnswer()" />
+    <button class="submit-btn" onclick="submitAnswer()">✓</button>
+  </div>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="card">
+    <div class="winner-section">
+      <div class="trophy-big" id="trophy-icon">🏆</div>
+      <div class="winner-name" id="winner-text">Winner!</div>
+      <div class="winner-sub" id="winner-sub"></div>
+    </div>
+    <div class="final-grid">
+      <div class="final-card" id="final-p1">
+        <div class="player-name" id="final-name1">P1</div>
+        <div class="final-score-big" id="final-score1">0</div>
+        <div class="final-acc" id="final-acc1"></div>
+      </div>
+      <div class="final-card" id="final-p2">
+        <div class="player-name" id="final-name2">P2</div>
+        <div class="final-score-big" id="final-score2">0</div>
+        <div class="final-acc" id="final-acc2"></div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="playAgain()">🔄 Dobara Khelo</button>
+    <button class="btn-secondary" onclick="goHome()">🏠 Home</button>
+  </div>
+</div>
+
+<script>
+const FIREBASE = 'https://battle-26320-default-rtdb.firebaseio.com/';
+
+let myRole = null, myName = '', roomCode = '', questions = [];
+let currentQ = 0, myScore = 0, answered = false, pollTimer = null, totalQ = 10;
+
+// ── Helpers ──
+function switchTab(t) {
+  document.getElementById('tab-create').className = 'tab' + (t==='create' ? ' active-tab' : '');
+  document.getElementById('tab-join').className   = 'tab' + (t==='join'   ? ' active-tab' : '');
+  document.getElementById('section-create').style.display = t==='create' ? 'block' : 'none';
+  document.getElementById('section-join').style.display   = t==='join'   ? 'block' : 'none';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function genCode() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += c[Math.floor(Math.random() * c.length)];
+  return code;
+}
+
+function genQuestions(count, diff) {
+  const qs = [];
+  for (let i = 0; i < count; i++) {
+    let q, ans;
+    const s = () => Math.floor(Math.random()*12)+2;
+    const r = () => Math.floor(Math.random()*89)+10;
+    if (diff === 'easy') {
+      if (Math.random() < 0.5) { const a=s(),b=s(); q=`${a} × ${b}`; ans=a*b; }
+      else { const a=Math.floor(Math.random()*50)+10, b=Math.floor(Math.random()*40)+5; q=`${a} + ${b}`; ans=a+b; }
+    } else if (diff === 'hard') {
+      const t = Math.random();
+      if (t < 0.33) { const a=r(),b=s(),c=Math.floor(Math.random()*9)+2; q=`${a} + ${b} × ${c}`; ans=a+b*c; }
+      else if (t < 0.66) { const p=(Math.floor(Math.random()*4)+1)*10, b=Math.floor(Math.random()*89)+12; q=`${p}% of ${b}`; ans=Math.round(p*b/100); }
+      else { const a=Math.floor(Math.random()*20)+10, b=Math.floor(Math.random()*15)+5; q=`${a} × ${b}`; ans=a*b; }
+    } else {
+      const t = Math.random();
+      if (t < 0.4) { const a=s(),b=s(); q=`${a} × ${b}`; ans=a*b; }
+      else if (t < 0.7) { const a=Math.floor(Math.random()*99)+50, b=Math.floor(Math.random()*45)+5; q=`${a} - ${b}`; ans=a-b; }
+      else { const a=Math.floor(Math.random()*60)+20, b=Math.floor(Math.random()*50)+10; q=`${a} + ${b}`; ans=a+b; }
+    }
+    qs.push({ q, ans });
+  }
+  return qs;
+}
+
+// ── Firebase ──
+async function fbGet(key) {
+  try {
+    const r = await fetch(FIREBASE + key + '.json');
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+function fbSet(key, val) {
+  // fire and forget always
+  fetch(FIREBASE + key + '.json', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(val)
+  }).catch(() => {});
+}
+
+function fbPatch(key, patch) {
+  // fire and forget always
+  fetch(FIREBASE + key + '.json', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch)
+  }).catch(() => {});
+}
+
+function copyCode() {
+  navigator.clipboard.writeText(roomCode).catch(() => {});
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = '✅ Copy Ho Gaya!';
+  setTimeout(() => btn.textContent = '📋 Code Copy Karo', 2000);
+}
+
+// ── Create Room ──
+async function createRoom() {
+  const name = document.getElementById('create-name').value.trim();
+  if (!name) { document.getElementById('create-err').textContent = 'Naam likho pehle!'; return; }
+  document.getElementById('create-err').textContent = '⏳ Room ban raha hai...';
+  document.querySelectorAll('.btn-primary').forEach(b => b.disabled = true);
+  totalQ    = parseInt(document.getElementById('q-count').value);
+  const diff = document.getElementById('difficulty').value;
+  roomCode  = genCode();
+  myName    = name;
+  myRole    = 'p1';
+  questions = genQuestions(totalQ, diff);
+  const room = {
+    p1: name, p2: null, questions, totalQ, diff,
+    status: 'waiting',
+    p1score: 0, p2score: 0,
+    p1q: 0,    p2q: 0,
+    p1done: false, p2done: false
+  };
+  // await only this one so we know room is created before showing code
+  await fetch(FIREBASE + 'mathbattle_' + roomCode + '.json', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(room)
+  });
+  document.getElementById('display-code').textContent = roomCode;
+  document.getElementById('create-err').textContent = '';
+  document.querySelectorAll('.btn-primary').forEach(b => b.disabled = false);
+  showScreen('waiting');
+  startWaitingPoll();
+}
+
+// ── Join Room ──
+async function joinRoom() {
+  const name = document.getElementById('join-name').value.trim();
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!name) { document.getElementById('join-err').textContent = 'Naam likho pehle!'; return; }
+  if (code.length < 6) { document.getElementById('join-err').textContent = 'Poora 6 digit code likho!'; return; }
+  document.getElementById('join-err').textContent = '⏳ Room dhundh raha hoon...';
+  const room = await fbGet('mathbattle_' + code);
+  if (!room) { document.getElementById('join-err').textContent = '❌ Room nahi mila! Code check karo.'; return; }
+  if (room.p2) { document.getElementById('join-err').textContent = '❌ Room full hai!'; return; }
+  myName = name; myRole = 'p2'; roomCode = code;
+  // fire and forget - update p2 in background
+  fbPatch('mathbattle_' + code, { p2: name, status: 'playing' });
+  document.getElementById('join-err').textContent = '';
+  // Firebase may return questions as object — fix before startGame
+  if (!Array.isArray(room.questions)) room.questions = Object.values(room.questions);
+  startGame(room, name); // pass p2 name since patch is async
+}
+
+// ── Waiting Poll ──
+function startWaitingPoll() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    const room = await fbGet('mathbattle_' + roomCode);
+    if (!room) return;
+    const list = document.getElementById('players-list');
+    list.innerHTML = `
+      <div class="player-joined"><span class="dot green"></span><span>${room.p1} (tu)</span></div>
+      ${room.p2
+        ? `<div class="player-joined"><span class="dot green"></span><span>${room.p2} (dost) ✅</span></div>`
+        : `<div class="player-joined"><span class="dot gray"></span><span style="color:#555">Dost abhi nahi aaya...</span></div>`}
+    `;
+    if (room.p2) {
+      clearInterval(pollTimer);
+      if (!Array.isArray(room.questions)) room.questions = Object.values(room.questions);
+      startGame(room);
+    }
+  }, 2000);
+}
+
+// ── Start Game ──
+// p2Name optional - passed when joiner starts before firebase confirms
+function startGame(room, p2Override) {
+  clearInterval(pollTimer);
+  currentQ = 0; myScore = 0; answered = false;
+  totalQ    = room.totalQ;
+  // Firebase may return array as object {0:{},1:{}} — convert safely
+  const raw = room.questions;
+  questions = Array.isArray(raw) ? raw : Object.values(raw);
+
+  // card-p1 (left) = ALWAYS ME, card-p2 (right) = ALWAYS DOST
+  const myN  = myRole === 'p1' ? room.p1 : (p2Override || room.p2);
+  const oppN = myRole === 'p1' ? (room.p2 || '...') : room.p1;
+
+  document.getElementById('name-p1').textContent  = myN + ' (Tu)';
+  document.getElementById('name-p2').textContent  = oppN;
+  document.getElementById('score-p1').textContent = '0';          // MY score always left
+  document.getElementById('qtrack-p2').textContent  = `Q0/${totalQ}`;
+  document.getElementById('status-p2').textContent  = 'Khel raha hai...';
+
+  showScreen('game');
+  loadQuestion();
+  startGamePoll();
+}
+
+// ── Load Question ──
+function loadQuestion() {
+  if (currentQ >= questions.length) { endGame(); return; }
+  const q = questions[currentQ];
+  document.getElementById('q-counter').textContent   = `Question ${currentQ+1} / ${totalQ}`;
+  document.getElementById('q-display').textContent   = `${q.q} = ?`;
+  document.getElementById('progress').style.width    = `${(currentQ / totalQ) * 100}%`;
+  document.getElementById('ans-input').value         = '';
+  document.getElementById('ans-input').disabled      = false;
+  document.getElementById('ans-input').style.display = '';
+  document.querySelector('.submit-btn').style.display = '';
+  document.getElementById('feedback').textContent    = '';
+  document.getElementById('feedback').className      = 'feedback';
+  answered = false;
+  setTimeout(() => document.getElementById('ans-input').focus(), 50);
+}
+
+// ── Submit Answer ──
+function submitAnswer() {
+  if (answered) return;
+  const val = document.getElementById('ans-input').value.trim();
+  if (val === '') {
+    const fb = document.getElementById('feedback');
+    fb.textContent = '⚠️ Pehle answer likho!';
+    fb.className = 'feedback wait';
+    return;
+  }
+
+  answered = true;
+  document.getElementById('ans-input').disabled = true;
+
+  const correct = parseInt(val) === questions[currentQ].ans;
+  myScore += correct ? 10 : 0;
+
+  // ── Instant UI update ──
+  const fb = document.getElementById('feedback');
+  fb.textContent = correct ? `✅ Sahi! +10` : `❌ Galat. Sahi: ${questions[currentQ].ans}`;
+  fb.className   = correct ? 'feedback correct' : 'feedback wrong';
+  document.getElementById('score-p1').textContent = myScore; // MY card always score-p1
+
+  // ── Firebase background (fire & forget, no await) ──
+  const patch = {};
+  patch[myRole + 'score'] = myScore;
+  patch[myRole + 'q']     = currentQ + 1;
+  if (currentQ + 1 >= totalQ) patch[myRole + 'done'] = true;
+  fbPatch('mathbattle_' + roomCode, patch);
+
+  // ── Next question after short pause ──
+  setTimeout(() => { currentQ++; loadQuestion(); }, 300);
+}
+
+// ── Game Poll (opponent progress only) ──
+function startGamePoll() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    const room = await fbGet('mathbattle_' + roomCode);
+    if (!room) return;
+
+    // opp firebase field: if I'm p1 → opp is p2, if I'm p2 → opp is p1
+    const opp     = myRole === 'p1' ? 'p2' : 'p1';
+    const oppQ    = room[opp + 'q']    || 0;
+    const oppDone = room[opp + 'done'] || false;
+
+    // card-p2 = always DOST — show progress only, no score
+    document.getElementById('qtrack-p2').textContent  = `Q${oppQ}/${totalQ}`;
+    document.getElementById('status-p2').textContent  = oppDone ? '✅ Khatam!' : 'Khel raha hai...';
+
+    // Both done? Use local currentQ for my done (Firebase may lag)
+    const myDone = currentQ >= totalQ;
+    if (myDone && oppDone) { clearInterval(pollTimer); showResult(room); }
+  }, 2000);
+}
+
+// ── End Game ──
+function endGame() {
+  clearInterval(pollTimer);
+  document.getElementById('progress').style.width        = '100%';
+  document.getElementById('ans-input').style.display     = 'none';
+  document.querySelector('.submit-btn').style.display    = 'none';
+  document.getElementById('q-display').textContent       = '✅ Tera hissa khatam!';
+  document.getElementById('q-counter').textContent       = 'Dost ka wait...';
+  const fb = document.getElementById('feedback');
+  fb.textContent = '⏳ Dost abhi khel raha hai...';
+  fb.className   = 'feedback wait';
+
+  // Mark done - fire and forget
+  const patch = {};
+  patch[myRole + 'done']  = true;
+  patch[myRole + 'score'] = myScore;
+  fbPatch('mathbattle_' + roomCode, patch);
+
+  // Poll until both done
+  pollTimer = setInterval(async () => {
+    const room = await fbGet('mathbattle_' + roomCode);
+    if (!room) return;
+    const opp = myRole === 'p1' ? 'p2' : 'p1';
+    document.getElementById('qtrack-p2').textContent = `Q${room[opp+'q']||0}/${totalQ}`;
+    document.getElementById('status-p2').textContent = room[opp+'done'] ? '✅ Khatam!' : 'Khel raha hai...';
+    if (room.p1done && room.p2done) { clearInterval(pollTimer); showResult(room); }
+  }, 2000);
+}
+
+// ── Show Result ──
+function showResult(room) {
+  const p1s = room.p1score || 0;
+  const p2s = room.p2score || 0;
+  let winText, winSub;
+  if (p1s > p2s)      { winText = `🎉 ${room.p1} jeeta!`; winSub = `${p1s} vs ${p2s} points`; }
+  else if (p2s > p1s) { winText = `🎉 ${room.p2} jeeta!`; winSub = `${p2s} vs ${p1s} points`; }
+  else                 { winText = '🤝 Tie! Barabar!';     winSub = `${p1s} points dono ke`;
+                         document.getElementById('trophy-icon').textContent = '🤝'; }
+
+  document.getElementById('winner-text').textContent = winText;
+  document.getElementById('winner-sub').textContent  = winSub;
+
+  // final cards: always show by firebase p1/p2 fields
+  document.getElementById('final-name1').textContent  = room.p1;
+  document.getElementById('final-score1').textContent = p1s + ' pts';
+  document.getElementById('final-acc1').textContent   = Math.round(p1s/(totalQ*10)*100) + '% sahi';
+  document.getElementById('final-name2').textContent  = room.p2 || 'P2';
+  document.getElementById('final-score2').textContent = p2s + ' pts';
+  document.getElementById('final-acc2').textContent   = Math.round(p2s/(totalQ*10)*100) + '% sahi';
+
+  const tie = p1s === p2s;
+  document.getElementById('final-p1').className = (!tie && p1s > p2s) ? 'final-card winner' : 'final-card';
+  document.getElementById('final-p2').className = (!tie && p2s > p1s) ? 'final-card winner' : 'final-card';
+
+  showScreen('result');
+}
+
+// ── Play Again / Home ──
+function playAgain() {
+  fbSet('mathbattle_' + roomCode, null); // cleanup
+  roomCode = ''; myRole = null; currentQ = 0; myScore = 0;
+  goHome();
+}
+
+function goHome() {
+  clearInterval(pollTimer);
+  ['create-name','join-name','join-code'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['create-err','join-err'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = '';
+  });
+  showScreen('home');
+}
+</script>
+</body>
+</html>
