@@ -337,7 +337,7 @@
 
     .scoreboard {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 12px;
     }
@@ -1016,6 +1016,10 @@
           <span>📋 Code Copy Karo</span>
         </button>
 
+        <button type="button" class="btn-primary" id="start-room-btn" onclick="startRoomGame()" style="display:none;margin-top:14px">
+          <span>🎮 Game Start Karo</span>
+        </button>
+
         <div class="waiting-section">
           <p style="font-size:14px;color:var(--text-muted);margin-bottom:12px">Dost ke connect hone ka intezar ho raha
             hai...</p>
@@ -1046,6 +1050,16 @@
           <div class="player-q-big" id="qtrack-p2">Q0/10</div>
           <div class="player-sub" id="status-p2">Khel raha hai...</div>
         </div>
+        <div class="player-card opponent" id="card-p3" style="display:none">
+          <div class="player-tag" id="name-p3">Player 3</div>
+          <div class="player-q-big" id="qtrack-p3">Q0/10</div>
+          <div class="player-sub" id="status-p3">Waiting...</div>
+        </div>
+        <div class="player-card opponent" id="card-p4" style="display:none">
+          <div class="player-tag" id="name-p4">Player 4</div>
+          <div class="player-q-big" id="qtrack-p4">Q0/10</div>
+          <div class="player-sub" id="status-p4">Waiting...</div>
+        </div>
       </div>
 
       <!-- Timer Countdown Bar -->
@@ -1073,7 +1087,7 @@
 
       <!-- Input Row -->
       <div class="answer-row">
-        <input class="answer-input" id="ans-input" type="text" inputmode="numeric" placeholder="?"
+        <input class="answer-input" id="ans-input" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="?"
           onkeydown="if(event.key==='Enter') submitAnswer()" />
         <button class="submit-btn" onclick="submitAnswer()">✓</button>
       </div>
@@ -1121,6 +1135,20 @@
             <div class="final-stat" id="final-time2">⏱️ Total: 0s</div>
             <div class="final-stat" id="final-streak2">Max Streak: 0 🔥</div>
           </div>
+          <div class="final-card" id="final-p3" style="display:none">
+            <div class="player-tag" id="final-name3">P3</div>
+            <div class="final-score-big" id="final-score3">0</div>
+            <div class="final-stat" id="final-acc3">0% Sahi</div>
+            <div class="final-stat" id="final-time3">⏱️ Total: 0s</div>
+            <div class="final-stat" id="final-streak3">Max Streak: 0 🔥</div>
+          </div>
+          <div class="final-card" id="final-p4" style="display:none">
+            <div class="player-tag" id="final-name4">P4</div>
+            <div class="final-score-big" id="final-score4">0</div>
+            <div class="final-stat" id="final-acc4">0% Sahi</div>
+            <div class="final-stat" id="final-time4">⏱️ Total: 0s</div>
+            <div class="final-stat" id="final-streak4">Max Streak: 0 🔥</div>
+          </div>
         </div>
 
         <!-- Question-by-Question Breakdown -->
@@ -1157,6 +1185,43 @@
     let timeLeft = 10;
     let totalTimeTaken = 0;
     let myHistory = []; // records details of each question
+    let roundStarting = false;
+
+    function playerRoles(room) {
+      return ['p1', 'p2', 'p3', 'p4'].filter(role => room && room[role]);
+    }
+
+    function resetPlayerFields() {
+      const fields = {};
+      ['p1', 'p2', 'p3', 'p4'].forEach(role => {
+        fields[role + 'score'] = 0;
+        fields[role + 'q'] = 0;
+        fields[role + 'streak'] = 0;
+        fields[role + 'time'] = 0;
+        fields[role + 'history'] = [];
+        fields[role + 'done'] = false;
+        fields[role + 'ready'] = false;
+      });
+      return fields;
+    }
+
+    function renderLobby(room) {
+      const list = document.getElementById('players-list');
+      list.innerHTML = playerRoles(room).map((role, index) =>
+        `<div class="player-joined"><span class="dot green"></span><span>${room[role]} ${index === 0 ? '(Host - Tu)' : '(Player ' + (index + 1) + ')'} ✅</span></div>`
+      ).join('') + (playerRoles(room).length < 4
+        ? '<div class="player-joined"><span class="dot gray"></span><span style="color:var(--text-dim)">Aur players join kar sakte hain...</span></div>'
+        : '');
+
+      const startButton = document.getElementById('start-room-btn');
+      const isHostWaiting = myRole === 'p1' && room.status !== 'playing' && room.status !== 'waiting_next';
+      const hasEnoughPlayers = playerRoles(room).length >= 2;
+      startButton.style.display = isHostWaiting ? 'flex' : 'none';
+      startButton.disabled = !hasEnoughPlayers;
+      startButton.querySelector('span').textContent = hasEnoughPlayers
+        ? '🎮 Game Start Karo'
+        : '⏳ Kam se kam 2 players chahiye';
+    }
 
     // ── Web Audio Synthesizer (Zero External Dependencies) ──
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1371,11 +1436,11 @@
     }
 
     function fbPatch(key, patch) {
-      fetch(FIREBASE + key + '.json', {
+      return fetch(FIREBASE + key + '.json', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(patch)
-      }).catch(() => { });
+      }).catch(() => null);
     }
 
     // ── Create Room ──
@@ -1394,20 +1459,17 @@
       timerPerQ = parseInt(document.getElementById('q-timer').value);
       const diff = document.getElementById('difficulty').value;
       roomCode = genCode();
+      window.currentRoomRound = 1;
       myName = name;
       myRole = 'p1';
       questions = genQuestions(totalQ, diff);
 
       const room = {
-        p1: name, p2: null, questions, totalQ, diff,
+        p1: name, p2: null, p3: null, p4: null, questions, totalQ, diff,
         timerPerQ: timerPerQ,
         status: 'waiting',
-        p1score: 0, p2score: 0,
-        p1q: 0, p2q: 0,
-        p1streak: 0, p2streak: 0,
-        p1time: 0, p2time: 0,
-        p1history: [], p2history: [],
-        p1done: false, p2done: false
+        round: 1,
+        ...resetPlayerFields()
       };
 
       try {
@@ -1421,6 +1483,7 @@
         document.getElementById('create-err').textContent = '';
         btn.disabled = false;
         showScreen('waiting');
+        renderLobby(room);
         startWaitingPoll();
       } catch (err) {
         document.getElementById('create-err').textContent = '❌ Network error, dobara try karo!';
@@ -1444,18 +1507,23 @@
       btn.disabled = false;
 
       if (!room) { document.getElementById('join-err').textContent = '❌ Room nahi mila! Code check karo.'; return; }
-      if (room.p2) { document.getElementById('join-err').textContent = '❌ Yeh room full hai!'; return; }
+      if (room.status !== 'waiting') { document.getElementById('join-err').textContent = '❌ Yeh game already start ho chuka hai!'; return; }
+
+      const openRole = ['p2', 'p3', 'p4'].find(role => !room[role]);
+      if (!openRole) { document.getElementById('join-err').textContent = '❌ Yeh room full hai!'; return; }
 
       myName = name;
-      myRole = 'p2';
+      myRole = openRole;
       roomCode = code;
       timerPerQ = room.timerPerQ !== undefined ? room.timerPerQ : 10;
 
-      fbPatch('mathbattle_' + code, { p2: name, status: 'playing' });
+      fbPatch('mathbattle_' + code, { [myRole]: name, [myRole + 'ready']: false });
       document.getElementById('join-err').textContent = '';
-
-      if (!Array.isArray(room.questions)) room.questions = Object.values(room.questions);
-      startGame(room, name);
+      room[myRole] = name;
+      showScreen('waiting');
+      document.getElementById('display-code').textContent = code;
+      renderLobby(room);
+      startWaitingPoll();
     }
 
     // ── Waiting Poll ──
@@ -1464,19 +1532,31 @@
       pollTimer = setInterval(async () => {
         const room = await fbGet('mathbattle_' + roomCode);
         if (!room) return;
-        const list = document.getElementById('players-list');
-        list.innerHTML = `
-      <div class="player-joined"><span class="dot green"></span><span>${room.p1} (Host - Tu)</span></div>
-      ${room.p2
-            ? `<div class="player-joined"><span class="dot green"></span><span>${room.p2} (Challenger) ✅</span></div>`
-            : `<div class="player-joined"><span class="dot gray"></span><span style="color:var(--text-dim)">Dost connect ho raha hai...</span></div>`}
-    `;
-        if (room.p2) {
+        renderLobby(room);
+        if (room.status === 'playing') {
           clearInterval(pollTimer);
           if (!Array.isArray(room.questions)) room.questions = Object.values(room.questions);
           startGame(room);
         }
       }, 1500);
+    }
+
+    async function startRoomGame() {
+      if (myRole !== 'p1') return;
+      const room = await fbGet('mathbattle_' + roomCode);
+      if (!room || playerRoles(room).length < 2 || room.status === 'playing' || room.status === 'waiting_next') {
+        const button = document.getElementById('start-room-btn');
+        if (button) button.querySelector('span').textContent = '⚠️ Room state update ho raha hai...';
+        return;
+      }
+      const response = await fbPatch('mathbattle_' + roomCode, { status: 'playing', round: room.round || 1 });
+      if (!response || !response.ok) {
+        const button = document.getElementById('start-room-btn');
+        if (button) button.querySelector('span').textContent = '❌ Start nahi hua, dobara click karo';
+        return;
+      }
+      room.status = 'playing';
+      startGame(room);
     }
 
     // ── Start Game ──
@@ -1494,18 +1574,28 @@
       myHistory = [];
 
       totalQ = room.totalQ;
+      window.currentRoomRound = room.round || 1;
       timerPerQ = room.timerPerQ !== undefined ? room.timerPerQ : 10;
       const raw = room.questions;
       questions = Array.isArray(raw) ? raw : Object.values(raw);
 
-      const myN = myRole === 'p1' ? room.p1 : (p2Override || room.p2);
-      const oppN = myRole === 'p1' ? (room.p2 || 'Challenger') : room.p1;
-
-      document.getElementById('name-p1').textContent = myN + ' (Tu)';
-      document.getElementById('name-p2').textContent = oppN;
-      document.getElementById('score-p1').textContent = '0';
-      document.getElementById('qtrack-p2').textContent = `Q0/${totalQ}`;
-      document.getElementById('status-p2').textContent = 'Khel raha hai...';
+      playerRoles(room).forEach(role => {
+        const card = document.getElementById('card-' + role);
+        const index = Number(role.slice(1));
+        if (!card) return;
+        card.style.display = 'block';
+        card.className = 'player-card ' + (role === myRole ? 'mine' : 'opponent');
+        document.getElementById('name-' + role).textContent = room[role] + (role === myRole ? ' (Tu)' : '');
+        const qTrack = document.getElementById('qtrack-' + role);
+        const playerStatus = document.getElementById('status-' + role);
+        if (qTrack) qTrack.textContent = `Q0/${totalQ}`;
+        if (playerStatus) playerStatus.textContent = role === myRole ? 'Tera progress' : 'Khel raha hai...';
+        const score = document.getElementById('score-' + role);
+        if (score) score.textContent = '0';
+      });
+      ['p2', 'p3', 'p4'].forEach(role => {
+        if (!room[role]) document.getElementById('card-' + role).style.display = 'none';
+      });
 
       // Toggle Timer display based on room setting
       const timerWrapper = document.getElementById('timer-wrapper');
@@ -1741,15 +1831,15 @@
         const room = await fbGet('mathbattle_' + roomCode);
         if (!room) return;
 
-        const opp = myRole === 'p1' ? 'p2' : 'p1';
-        const oppQ = room[opp + 'q'] || 0;
-        const oppDone = room[opp + 'done'] || false;
+        playerRoles(room).forEach(role => {
+          const qTrack = document.getElementById('qtrack-' + role);
+          const status = document.getElementById('status-' + role);
+          if (qTrack) qTrack.textContent = `Q${room[role + 'q'] || 0}/${totalQ}`;
+          if (status && role !== myRole) status.textContent = room[role + 'done'] ? '✅ Finished!' : 'Khel raha hai...';
+        });
 
-        document.getElementById('qtrack-p2').textContent = `Q${oppQ}/${totalQ}`;
-        document.getElementById('status-p2').textContent = oppDone ? '✅ Finished!' : 'Khel raha hai...';
-
-        const myDone = currentQ >= totalQ;
-        if (myDone && oppDone) {
+        const allDone = playerRoles(room).every(role => room[role + 'done']);
+        if (currentQ >= totalQ && allDone) {
           clearInterval(pollTimer);
           showResult(room);
         }
@@ -1784,10 +1874,13 @@
       pollTimer = setInterval(async () => {
         const room = await fbGet('mathbattle_' + roomCode);
         if (!room) return;
-        const opp = myRole === 'p1' ? 'p2' : 'p1';
-        document.getElementById('qtrack-p2').textContent = `Q${room[opp + 'q'] || 0}/${totalQ}`;
-        document.getElementById('status-p2').textContent = room[opp + 'done'] ? '✅ Finished!' : 'Khel raha hai...';
-        if (room.p1done && room.p2done) {
+        playerRoles(room).forEach(role => {
+          const qTrack = document.getElementById('qtrack-' + role);
+          const status = document.getElementById('status-' + role);
+          if (qTrack) qTrack.textContent = `Q${room[role + 'q'] || 0}/${totalQ}`;
+          if (status && role !== myRole) status.textContent = room[role + 'done'] ? '✅ Finished!' : 'Khel raha hai...';
+        });
+        if (playerRoles(room).every(role => room[role + 'done'])) {
           clearInterval(pollTimer);
           showResult(room);
         }
@@ -1905,11 +1998,109 @@
       window.open(url, '_blank');
     }
 
+    // ── Four-player results and persistent next round ──
+    function showResult(room) {
+      const roles = playerRoles(room);
+      const ranked = roles.map(role => ({
+        role,
+        name: room[role],
+        score: room[role + 'score'] || 0,
+        time: room[role + 'time'] || 0,
+        history: room[role + 'history'] || []
+      })).sort((a, b) => b.score - a.score || a.time - b.time);
+      const winner = ranked[0];
+      const tied = ranked.length > 1 && ranked.every(player => player.score === winner.score && player.time === winner.time);
+
+      document.getElementById('winner-text').textContent = tied ? '🤝 Match Tie Ho Gaya!' : `🏆 ${winner.name} Jeet Gaya!`;
+      document.getElementById('winner-sub').textContent = tied
+        ? `Sabke ${winner.score} points`
+        : `${winner.score} pts${winner.time ? `, ${winner.time}s` : ''}`;
+      document.getElementById('trophy-icon').textContent = tied ? '🤝' : '🏆';
+
+      ['p1', 'p2', 'p3', 'p4'].forEach(role => {
+        const player = ranked.find(item => item.role === role);
+        const card = document.getElementById('final-' + role);
+        if (!player) { card.style.display = 'none'; return; }
+        card.style.display = 'block';
+        document.getElementById('final-name' + role.slice(1)).textContent = player.name;
+        document.getElementById('final-score' + role.slice(1)).textContent = player.score + ' pts';
+        document.getElementById('final-acc' + role.slice(1)).textContent = `${player.history.filter(item => item.correct).length}/${totalQ} Sahi`;
+        document.getElementById('final-time' + role.slice(1)).textContent = `⏱️ Total: ${player.time}s`;
+        document.getElementById('final-streak' + role.slice(1)).textContent = `Max Streak: ${room[role + 'streak'] || 0} 🔥`;
+        const isWinner = !tied && player.role === winner.role;
+        card.className = isWinner ? 'final-card winner' : 'final-card';
+      });
+
+      const bList = document.getElementById('breakdown-list');
+      bList.innerHTML = '';
+      const qLen = Math.max(questions.length, ...roles.map(role => (room[role + 'history'] || []).length));
+      for (let index = 0; index < qLen; index++) {
+        const source = roles.map(role => room[role + 'history']?.[index]).find(Boolean);
+        const item = document.createElement('div');
+        item.className = 'breakdown-item';
+        const rows = roles.map(role => {
+          const result = room[role + 'history']?.[index];
+          if (!result) return `<div class="player-res"><strong>${room[role]}:</strong> —</div>`;
+          const status = result.timedOut ? `⏰ Time Out (${result.time}s)` : result.correct
+            ? `✅ ${result.userAns} (${result.time}s, +${result.points})`
+            : `❌ ${result.userAns} (${result.time}s)`;
+          return `<div class="player-res ${result.timedOut ? 'timeout' : result.correct ? 'correct' : 'wrong'}"><strong>${room[role]}:</strong> ${status}</div>`;
+        }).join('');
+        item.innerHTML = `<div class="breakdown-q">Q${index + 1}: ${source?.q || `Question ${index + 1}`} = ${source?.ans ?? ''}</div><div class="breakdown-row">${rows}</div>`;
+        bList.appendChild(item);
+      }
+      showScreen('result');
+      playSound('win');
+      launchConfetti();
+    }
+
+    async function startNextRound() {
+      if (myRole !== 'p1' || roundStarting) return;
+      const room = await fbGet('mathbattle_' + roomCode);
+      const roles = playerRoles(room);
+      if (!room || room.status !== 'waiting_next' || !roles.every(role => room[role + 'ready'])) return;
+      roundStarting = true;
+      const nextRound = (room.round || 1) + 1;
+      const patch = {
+        questions: genQuestions(room.totalQ, room.diff),
+        status: 'playing',
+        round: nextRound,
+        ...resetPlayerFields()
+      };
+      await fbPatch('mathbattle_' + roomCode, patch);
+      window.currentRoomRound = nextRound;
+      roundStarting = false;
+    }
+
+    function startNextRoundPoll() {
+      clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        const room = await fbGet('mathbattle_' + roomCode);
+        if (!room) return;
+        renderLobby(room);
+        if (room.status === 'waiting_next') startNextRound();
+        if (room.status === 'playing' && (room.round || 1) > (window.currentRoomRound || 1)) {
+          window.currentRoomRound = room.round || 1;
+          clearInterval(pollTimer);
+          startGame(room);
+        }
+      }, 1500);
+    }
+
     // ── Reset & Restart ──
     function playAgain() {
-      roomCode = ''; myRole = null; currentQ = 0; myScore = 0; streak = 0; totalTimeTaken = 0; myHistory = [];
       clearInterval(qTimerInterval);
-      goHome();
+      myScore = 0;
+      streak = 0;
+      totalTimeTaken = 0;
+      myHistory = [];
+      fbPatch('mathbattle_' + roomCode, {
+        [myRole + 'ready']: true,
+        status: 'waiting_next'
+      });
+      document.getElementById('display-code').textContent = roomCode;
+      showScreen('waiting');
+      startNextRoundPoll();
     }
 
     function goHome() {
