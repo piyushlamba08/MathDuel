@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Battle — Piyush vs Nishu</title>
+<title>Math Battle</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #f0f0f0; min-height: 100vh; }
@@ -65,6 +65,16 @@
   .feedback.correct { background: #0f2a1a; color: #4ade80; border: 1px solid #1a4a2a; }
   .feedback.wrong { background: #2a0f0f; color: #f87171; border: 1px solid #4a1a1a; }
   .feedback.wait { background: #1a1a00; color: #fbbf24; border: 1px solid #3a3a00; }
+  .timer-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .timer-label { font-size: 13px; color: #888; }
+  .timer-value { color: #fbbf24; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .details { margin-top: 1rem; }
+  .details h3 { font-size: 14px; color: #aaa; margin-bottom: 8px; }
+  .answer-detail { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #242431; font-size: 12px; color: #888; }
+  .answer-detail:last-child { border-bottom: 0; }
+  .answer-detail .result-ok { color: #4ade80; }
+  .answer-detail .result-no { color: #f87171; }
+  .bonus { color: #fbbf24; font-size: 11px; }
 
   .err { font-size: 13px; color: #f87171; margin-top: 4px; min-height: 18px; }
 
@@ -102,7 +112,7 @@
   <div class="logo">
     <div class="icon">🧮</div>
     <h1>Math Battle</h1>
-    <p>Piyush vs Nishu — kaun jeetega?</p>
+    <p>Apne naam se room banao aur challenge karo</p>
   </div>
   <div class="card">
     <div class="tab-row">
@@ -112,13 +122,20 @@
 
     <div id="section-create">
       <label class="lbl">Apna Naam</label>
-      <input class="input-field" id="create-name" placeholder="Piyush ya Nishu" maxlength="12" />
+      <input class="input-field" id="create-name" placeholder="Apna naam" maxlength="12" />
       <label class="lbl">Questions</label>
       <select class="input-field" id="q-count">
         <option value="5">5 Questions</option>
         <option value="10" selected>10 Questions</option>
         <option value="15">15 Questions</option>
         <option value="20">20 Questions</option>
+      </select>
+      <label class="lbl">Har Question ka Timer</label>
+      <select class="input-field" id="time-limit">
+        <option value="5">5 seconds</option>
+        <option value="10" selected>10 seconds</option>
+        <option value="15">15 seconds</option>
+        <option value="30">30 seconds</option>
       </select>
       <label class="lbl">Difficulty</label>
       <select class="input-field" id="difficulty">
@@ -132,7 +149,7 @@
 
     <div id="section-join" style="display:none">
       <label class="lbl">Apna Naam</label>
-      <input class="input-field" id="join-name" placeholder="Piyush ya Nishu" maxlength="12" />
+      <input class="input-field" id="join-name" placeholder="Apna naam" maxlength="12" />
       <label class="lbl">Room Code</label>
       <input class="input-field" id="join-code" placeholder="6 digit code" maxlength="6"
         style="text-transform:uppercase;letter-spacing:4px;font-size:20px;text-align:center;font-family:monospace" />
@@ -152,7 +169,7 @@
   <div class="card">
     <div class="room-code-box">
       <div class="room-code" id="display-code">------</div>
-      <div class="room-code-hint">Yeh code Nishu ko WhatsApp karo</div>
+      <div class="room-code-hint">Yeh code apne dost ko WhatsApp karo</div>
       <button class="copy-btn" onclick="copyCode()">📋 Code Copy Karo</button>
     </div>
     <div class="waiting-section">
@@ -182,6 +199,7 @@
     <div class="q-num" id="q-counter">Question 1 / 10</div>
     <div class="q-text" id="q-display">Loading...</div>
   </div>
+  <div class="timer-row"><span class="timer-label">Time left</span><span class="timer-value" id="timer-value">10s</span></div>
   <div class="answer-row">
     <input class="answer-input" id="ans-input" type="number" placeholder="?"
       onkeydown="if(event.key==='Enter') submitAnswer()" />
@@ -210,6 +228,10 @@
         <div class="final-acc" id="final-acc2"></div>
       </div>
     </div>
+    <div class="details">
+      <h3>Har question ka result</h3>
+      <div id="answer-details"></div>
+    </div>
     <button class="btn-primary" onclick="playAgain()">🔄 Dobara Khelo</button>
     <button class="btn-secondary" onclick="goHome()">🏠 Home</button>
   </div>
@@ -219,7 +241,8 @@
 const FIREBASE = 'https://battle-26320-default-rtdb.firebaseio.com/';
 
 let myRole = null, myName = '', roomCode = '', questions = [];
-let currentQ = 0, myScore = 0, answered = false, pollTimer = null, totalQ = 10;
+let currentQ = 0, myScore = 0, answered = false, pollTimer = null, questionTimer = null, timerStartedAt = 0, totalQ = 10, timeLimit = 10;
+let currentStreak = 0, answerRecords = [];
 
 // ── Helpers ──
 function switchTab(t) {
@@ -244,7 +267,8 @@ function genCode() {
 
 function genQuestions(count, diff) {
   const qs = [];
-  for (let i = 0; i < count; i++) {
+  const used = new Set();
+  while (qs.length < count) {
     let q, ans;
     const s = () => Math.floor(Math.random()*12)+2;
     const r = () => Math.floor(Math.random()*89)+10;
@@ -262,7 +286,7 @@ function genQuestions(count, diff) {
       else if (t < 0.7) { const a=Math.floor(Math.random()*99)+50, b=Math.floor(Math.random()*45)+5; q=`${a} - ${b}`; ans=a-b; }
       else { const a=Math.floor(Math.random()*60)+20, b=Math.floor(Math.random()*50)+10; q=`${a} + ${b}`; ans=a+b; }
     }
-    qs.push({ q, ans });
+    if (!used.has(q)) { used.add(q); qs.push({ q, ans }); }
   }
   return qs;
 }
@@ -308,6 +332,7 @@ async function createRoom() {
   document.getElementById('create-err').textContent = '⏳ Room ban raha hai...';
   document.querySelectorAll('.btn-primary').forEach(b => b.disabled = true);
   totalQ    = parseInt(document.getElementById('q-count').value);
+  timeLimit = parseInt(document.getElementById('time-limit').value);
   const diff = document.getElementById('difficulty').value;
   roomCode  = genCode();
   myName    = name;
@@ -318,7 +343,8 @@ async function createRoom() {
     status: 'waiting',
     p1score: 0, p2score: 0,
     p1q: 0,    p2q: 0,
-    p1done: false, p2done: false
+    p1done: false, p2done: false,
+    timeLimit, p1answers: [], p2answers: []
   };
   // await only this one so we know room is created before showing code
   await fetch(FIREBASE + 'mathbattle_' + roomCode + '.json', {
@@ -377,8 +403,10 @@ function startWaitingPoll() {
 // p2Name optional - passed when joiner starts before firebase confirms
 function startGame(room, p2Override) {
   clearInterval(pollTimer);
-  currentQ = 0; myScore = 0; answered = false;
+  clearInterval(questionTimer);
+  currentQ = 0; myScore = 0; answered = false; currentStreak = 0; answerRecords = [];
   totalQ    = room.totalQ;
+  timeLimit = room.timeLimit || 10;
   // Firebase may return array as object {0:{},1:{}} — convert safely
   const raw = room.questions;
   questions = Array.isArray(raw) ? raw : Object.values(raw);
@@ -401,6 +429,7 @@ function startGame(room, p2Override) {
 // ── Load Question ──
 function loadQuestion() {
   if (currentQ >= questions.length) { endGame(); return; }
+  clearInterval(questionTimer);
   const q = questions[currentQ];
   document.getElementById('q-counter').textContent   = `Question ${currentQ+1} / ${totalQ}`;
   document.getElementById('q-display').textContent   = `${q.q} = ?`;
@@ -411,15 +440,23 @@ function loadQuestion() {
   document.querySelector('.submit-btn').style.display = '';
   document.getElementById('feedback').textContent    = '';
   document.getElementById('feedback').className      = 'feedback';
+  timerStartedAt = Date.now();
+  let secondsLeft = timeLimit;
+  document.getElementById('timer-value').textContent = `${secondsLeft}s`;
+  questionTimer = setInterval(() => {
+    secondsLeft -= 1;
+    document.getElementById('timer-value').textContent = `${Math.max(secondsLeft, 0)}s`;
+    if (secondsLeft <= 0) submitAnswer(true);
+  }, 1000);
   answered = false;
   setTimeout(() => document.getElementById('ans-input').focus(), 50);
 }
 
 // ── Submit Answer ──
-function submitAnswer() {
+function submitAnswer(timedOut = false) {
   if (answered) return;
   const val = document.getElementById('ans-input').value.trim();
-  if (val === '') {
+  if (val === '' && !timedOut) {
     const fb = document.getElementById('feedback');
     fb.textContent = '⚠️ Pehle answer likho!';
     fb.className = 'feedback wait';
@@ -427,14 +464,25 @@ function submitAnswer() {
   }
 
   answered = true;
+  clearInterval(questionTimer);
   document.getElementById('ans-input').disabled = true;
 
-  const correct = parseInt(val) === questions[currentQ].ans;
-  myScore += correct ? 10 : 0;
+  const correct = !timedOut && parseInt(val) === questions[currentQ].ans;
+  const elapsed = Math.min(timeLimit, (Date.now() - timerStartedAt) / 1000);
+  let points = 0;
+  if (correct) {
+    currentStreak += 1;
+    points = 10;
+    if (currentStreak % 3 === 0) points += 5;
+  } else {
+    currentStreak = 0;
+  }
+  myScore += points;
+  answerRecords.push({ correct, seconds: Number(elapsed.toFixed(1)), timedOut, points });
 
   // ── Instant UI update ──
   const fb = document.getElementById('feedback');
-  fb.textContent = correct ? `✅ Sahi! +10` : `❌ Galat. Sahi: ${questions[currentQ].ans}`;
+  fb.textContent = timedOut ? `⏰ Time up! 0 points` : correct ? `✅ Sahi! +${points}${points > 10 ? ' (3 streak bonus +5)' : ''}` : `❌ Galat. Sahi: ${questions[currentQ].ans}`;
   fb.className   = correct ? 'feedback correct' : 'feedback wrong';
   document.getElementById('score-p1').textContent = myScore; // MY card always score-p1
 
@@ -442,6 +490,7 @@ function submitAnswer() {
   const patch = {};
   patch[myRole + 'score'] = myScore;
   patch[myRole + 'q']     = currentQ + 1;
+  patch[myRole + 'answers'] = answerRecords;
   if (currentQ + 1 >= totalQ) patch[myRole + 'done'] = true;
   fbPatch('mathbattle_' + roomCode, patch);
 
@@ -474,6 +523,7 @@ function startGamePoll() {
 // ── End Game ──
 function endGame() {
   clearInterval(pollTimer);
+  clearInterval(questionTimer);
   document.getElementById('progress').style.width        = '100%';
   document.getElementById('ans-input').style.display     = 'none';
   document.querySelector('.submit-btn').style.display    = 'none';
@@ -487,6 +537,7 @@ function endGame() {
   const patch = {};
   patch[myRole + 'done']  = true;
   patch[myRole + 'score'] = myScore;
+  patch[myRole + 'answers'] = answerRecords;
   fbPatch('mathbattle_' + roomCode, patch);
 
   // Poll until both done
@@ -504,7 +555,10 @@ function endGame() {
 function showResult(room) {
   const p1s = room.p1score || 0;
   const p2s = room.p2score || 0;
+  const p1answers = Array.isArray(room.p1answers) ? room.p1answers : [];
+  const p2answers = Array.isArray(room.p2answers) ? room.p2answers : [];
   let winText, winSub;
+  document.getElementById('trophy-icon').textContent = '🏆';
   if (p1s > p2s)      { winText = `🎉 ${room.p1} jeeta!`; winSub = `${p1s} vs ${p2s} points`; }
   else if (p2s > p1s) { winText = `🎉 ${room.p2} jeeta!`; winSub = `${p2s} vs ${p1s} points`; }
   else                 { winText = '🤝 Tie! Barabar!';     winSub = `${p1s} points dono ke`;
@@ -521,6 +575,16 @@ function showResult(room) {
   document.getElementById('final-score2').textContent = p2s + ' pts';
   document.getElementById('final-acc2').textContent   = Math.round(p2s/(totalQ*10)*100) + '% sahi';
 
+  const detailRows = questions.map((question, index) => {
+    const p1 = p1answers[index];
+    const p2 = p2answers[index];
+    const result = (player, record) => record
+      ? `<span class="${record.correct ? 'result-ok' : 'result-no'}">${player}: ${record.correct ? 'Sahi' : record.timedOut ? 'Time up' : 'Galat'}</span><span>${record.seconds}s</span>`
+      : `<span>${player}: -</span><span>-</span>`;
+    return `<div class="answer-detail"><span>Q${index + 1}. ${question.q}</span>${result(room.p1, p1)}${result(room.p2 || 'P2', p2)}</div>`;
+  }).join('');
+  document.getElementById('answer-details').innerHTML = detailRows || '<div class="answer-detail">Result details unavailable</div>';
+
   const tie = p1s === p2s;
   document.getElementById('final-p1').className = (!tie && p1s > p2s) ? 'final-card winner' : 'final-card';
   document.getElementById('final-p2').className = (!tie && p2s > p1s) ? 'final-card winner' : 'final-card';
@@ -531,7 +595,8 @@ function showResult(room) {
 // ── Play Again / Home ──
 function playAgain() {
   fbSet('mathbattle_' + roomCode, null); // cleanup
-  roomCode = ''; myRole = null; currentQ = 0; myScore = 0;
+  clearInterval(questionTimer);
+  roomCode = ''; myRole = null; currentQ = 0; myScore = 0; answerRecords = [];
   goHome();
 }
 
