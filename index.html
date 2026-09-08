@@ -1197,6 +1197,7 @@
     let myHistory = []; // records details of each question
     let roundStarting = false;
     let startedRound = null;
+    let waitingPollActive = false;
 
     function playerRoles(room) {
       return ['p1', 'p2', 'p3', 'p4'].filter(role => room && room[role]);
@@ -1561,17 +1562,27 @@
 
     // ── Waiting Poll ──
     function startWaitingPoll() {
-      clearInterval(pollTimer);
-      pollTimer = setInterval(async () => {
+      clearTimeout(pollTimer);
+      waitingPollActive = true;
+
+      const pollWaitingRoom = async () => {
+        if (!waitingPollActive) return;
         const room = await fbGet('mathbattle_' + roomCode);
-        if (!room) return;
-        renderLobby(room);
-        if (room.status === 'playing') {
-          clearInterval(pollTimer);
-          if (!Array.isArray(room.questions)) room.questions = Object.values(room.questions);
-          startGame(room);
+        if (room) {
+          renderLobby(room);
+          if (room.status === 'playing') {
+            waitingPollActive = false;
+            pollTimer = null;
+            if (!Array.isArray(room.questions)) room.questions = Object.values(room.questions || {});
+            startGame(room);
+            return;
+          }
         }
-      }, 1500);
+
+        pollTimer = setTimeout(pollWaitingRoom, 1500);
+      };
+
+      pollWaitingRoom();
     }
 
     async function startRoomGame() {
@@ -1594,7 +1605,9 @@
 
     // ── Start Game ──
     function startGame(room, p2Override) {
+      waitingPollActive = false;
       clearInterval(pollTimer);
+      clearTimeout(pollTimer);
       clearInterval(qTimerInterval);
 
       const roomRound = room.round || 1;
