@@ -235,6 +235,10 @@
       grid-template-columns: repeat(4, 1fr);
     }
 
+    .pill-grid.cols-5 {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
     .pill-btn {
       background: rgba(11, 15, 25, 0.85);
       border: 1.5px solid var(--bg-card-border);
@@ -276,6 +280,7 @@
     }
 
     input[type="text"],
+    input[type="number"],
     select {
       width: 100%;
       padding: 12px 14px;
@@ -291,6 +296,7 @@
     }
 
     input[type="text"]:focus,
+    input[type="number"]:focus,
     select:focus {
       border-color: var(--primary-light);
       box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
@@ -664,6 +670,7 @@
       background: rgba(239, 68, 68, 0.15);
       border-color: rgba(239, 68, 68, 0.35);
       color: #fca5a5;
+      grid-column: span 3;
     }
 
     .num-key.action-key:active {
@@ -892,11 +899,15 @@
           <!-- Total Questions Pills -->
           <div class="form-group">
             <label>Total Questions</label>
-            <div class="pill-grid cols-4" id="q-pills">
+            <div class="pill-grid cols-5" id="q-pills">
               <button type="button" class="pill-btn" onclick="selectPill('total-q', '5', this)">5 Q</button>
               <button type="button" class="pill-btn active" onclick="selectPill('total-q', '10', this)">10 Q</button>
               <button type="button" class="pill-btn" onclick="selectPill('total-q', '15', this)">15 Q</button>
               <button type="button" class="pill-btn" onclick="selectPill('total-q', '20', this)">20 Q</button>
+              <button type="button" class="pill-btn" onclick="showCustomQ(this)">Custom</button>
+            </div>
+            <div id="custom-q-container" style="display: none; margin-top: 10px;">
+              <input type="number" id="custom-q-input" placeholder="Custom number (e.g. 50)" oninput="document.getElementById('total-q').value = this.value || 10" min="1" />
             </div>
           </div>
 
@@ -1061,6 +1072,7 @@
           <button class="num-key" type="button" onclick="numpadPress('9')">9</button>
           <button class="num-key" type="button" onclick="numpadPress('-')">-</button>
           <button class="num-key" type="button" onclick="numpadPress('0')">0</button>
+          <button class="num-key" type="button" onclick="numpadPress('.')">.</button>
           <button class="num-key action-key" type="button" onclick="numpadBackspace()">⌫</button>
         </div>
       </div>
@@ -1318,6 +1330,21 @@
       const parent = btnEl.parentElement;
       parent.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
       btnEl.classList.add('active');
+
+      if (inputId === 'total-q') {
+        const customContainer = document.getElementById('custom-q-container');
+        if (customContainer) customContainer.style.display = 'none';
+      }
+    }
+
+    function showCustomQ(btnEl) {
+      playSound('click');
+      const parent = btnEl.parentElement;
+      parent.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+      document.getElementById('custom-q-container').style.display = 'block';
+      const customVal = document.getElementById('custom-q-input').value;
+      document.getElementById('total-q').value = customVal || '10';
     }
 
     function switchTab(tab) {
@@ -1365,15 +1392,33 @@
         let q, ans;
 
         if (topic === 'addition') {
-          const a = Math.floor(Math.random() * (45 * scale)) + 5;
-          const b = Math.floor(Math.random() * (45 * scale)) + 5;
-          q = `${a} + ${b}`;
-          ans = a + b;
+          if (diff === 'easy') {
+            const a = Math.floor(Math.random() * 90) + 10;
+            const b = Math.floor(Math.random() * 90) + 10;
+            q = `${a} + ${b}`; ans = a + b;
+          } else if (diff === 'medium') {
+            const a = Math.floor(Math.random() * 900) + 100;
+            const b = Math.floor(Math.random() * 900) + 100;
+            q = `${a} + ${b}`; ans = a + b;
+          } else {
+            const a = Math.floor(Math.random() * 9000) + 1000;
+            const b = Math.floor(Math.random() * 9000) + 1000;
+            q = `${a} + ${b}`; ans = a + b;
+          }
         } else if (topic === 'subtraction') {
-          const a = Math.floor(Math.random() * (50 * scale)) + 15;
-          const b = Math.floor(Math.random() * (a - 2)) + 2;
-          q = `${a} - ${b}`;
-          ans = a - b;
+          if (diff === 'easy') {
+            const a = Math.floor(Math.random() * 90) + 10;
+            const b = Math.floor(Math.random() * (a - 2)) + 2;
+            q = `${a} - ${b}`; ans = a - b;
+          } else if (diff === 'medium') {
+            const a = Math.floor(Math.random() * 900) + 100;
+            const b = Math.floor(Math.random() * (a - 10)) + 10;
+            q = `${a} - ${b}`; ans = a - b;
+          } else {
+            const a = Math.floor(Math.random() * 9000) + 1000;
+            const b = Math.floor(Math.random() * (a - 100)) + 100;
+            q = `${a} - ${b}`; ans = a - b;
+          }
         } else if (topic === 'multiplication') {
           const a = Math.floor(Math.random() * (diff === 'hard' ? 25 : (diff === 'easy' ? 9 : 14))) + 2;
           const b = Math.floor(Math.random() * (diff === 'hard' ? 15 : (diff === 'easy' ? 9 : 12))) + 2;
@@ -1397,26 +1442,56 @@
             ans = (a + b) - c;
           }
         } else if (topic === 'percentage') {
-          const p = diff === 'easy' ? [10, 50][Math.floor(Math.random() * 2)] : [10, 20, 25, 50][Math.floor(Math.random() * 4)];
-          const mult = Math.floor(Math.random() * (diff === 'hard' ? 25 : 12)) + 2;
-          const base = (p === 25 ? mult * 4 : mult * 10);
-          q = `${p}% of ${base}`;
-          ans = Math.round((p * base) / 100);
+          if (diff === 'easy') {
+            const p = [10, 20, 25, 50][Math.floor(Math.random() * 4)];
+            const base = Math.floor(Math.random() * 10 + 1) * 10;
+            q = `${p}% of ${base}`;
+            ans = Number(((p * base) / 100).toFixed(2));
+          } else if (diff === 'medium') {
+            const p = Math.floor(Math.random() * 19 + 1) * 5; // Multiples of 5 up to 95
+            const base = Math.floor(Math.random() * 30 + 2) * 10; 
+            q = `${p}% of ${base}`;
+            ans = Number(((p * base) / 100).toFixed(2));
+          } else {
+            // Hard: half percentages like 67.5, or random integers
+            const p = Math.floor(Math.random() * 190 + 10) / 2; // 5.0 to 99.5 in 0.5 steps
+            const base = Math.floor(Math.random() * 150 + 10);
+            q = `${p}% of ${base}`;
+            ans = Number(((p * base) / 100).toFixed(2));
+          }
         } else {
           // 'mixed' (All operations combined randomly)
           const mode = Math.random();
           if (mode < 0.18) {
             // Addition
-            const a = Math.floor(Math.random() * (40 * scale)) + 10;
-            const b = Math.floor(Math.random() * (35 * scale)) + 5;
-            q = `${a} + ${b}`;
-            ans = a + b;
+            if (diff === 'easy') {
+              const a = Math.floor(Math.random() * 90) + 10;
+              const b = Math.floor(Math.random() * 90) + 10;
+              q = `${a} + ${b}`; ans = a + b;
+            } else if (diff === 'medium') {
+              const a = Math.floor(Math.random() * 900) + 100;
+              const b = Math.floor(Math.random() * 900) + 100;
+              q = `${a} + ${b}`; ans = a + b;
+            } else {
+              const a = Math.floor(Math.random() * 9000) + 1000;
+              const b = Math.floor(Math.random() * 9000) + 1000;
+              q = `${a} + ${b}`; ans = a + b;
+            }
           } else if (mode < 0.35) {
             // Subtraction
-            const a = Math.floor(Math.random() * (50 * scale)) + 20;
-            const b = Math.floor(Math.random() * a) + 5;
-            q = `${a} - ${b}`;
-            ans = a - b;
+            if (diff === 'easy') {
+              const a = Math.floor(Math.random() * 90) + 10;
+              const b = Math.floor(Math.random() * (a - 2)) + 2;
+              q = `${a} - ${b}`; ans = a - b;
+            } else if (diff === 'medium') {
+              const a = Math.floor(Math.random() * 900) + 100;
+              const b = Math.floor(Math.random() * (a - 10)) + 10;
+              q = `${a} - ${b}`; ans = a - b;
+            } else {
+              const a = Math.floor(Math.random() * 9000) + 1000;
+              const b = Math.floor(Math.random() * (a - 100)) + 100;
+              q = `${a} - ${b}`; ans = a - b;
+            }
           } else if (mode < 0.52) {
             // Multiplication
             const a = Math.floor(Math.random() * (diff === 'hard' ? 18 : (diff === 'easy' ? 9 : 13))) + 2;
@@ -1438,12 +1513,23 @@
             q = `${a} + (${b} × ${c})`;
             ans = a + (b * c);
           } else {
-            // Percentage
-            const p = diff === 'easy' ? [10, 50][Math.floor(Math.random() * 2)] : [10, 20, 25, 50][Math.floor(Math.random() * 4)];
-            const mult = Math.floor(Math.random() * (diff === 'hard' ? 20 : 12)) + 2;
-            const base = (p === 25 ? mult * 4 : mult * 10);
-            q = `${p}% of ${base}`;
-            ans = Math.round((p * base) / 100);
+            // Percentage (Mixed mode)
+            if (diff === 'easy') {
+              const p = [10, 20, 25, 50][Math.floor(Math.random() * 4)];
+              const base = Math.floor(Math.random() * 10 + 1) * 10;
+              q = `${p}% of ${base}`;
+              ans = Number(((p * base) / 100).toFixed(2));
+            } else if (diff === 'medium') {
+              const p = Math.floor(Math.random() * 19 + 1) * 5;
+              const base = Math.floor(Math.random() * 30 + 2) * 10; 
+              q = `${p}% of ${base}`;
+              ans = Number(((p * base) / 100).toFixed(2));
+            } else {
+              const p = Math.floor(Math.random() * 190 + 10) / 2; 
+              const base = Math.floor(Math.random() * 150 + 10);
+              q = `${p}% of ${base}`;
+              ans = Number(((p * base) / 100).toFixed(2));
+            }
           }
         }
         qs.push({ q, ans });
