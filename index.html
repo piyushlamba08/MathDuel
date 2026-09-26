@@ -341,6 +341,30 @@
       background: rgba(255, 255, 255, 0.14);
     }
 
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none !important;
+      pointer-events: none;
+    }
+
+    .btn-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: btnSpin 0.75s linear infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    @keyframes btnSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     /* Lobby Styling */
     .room-code-badge {
       display: flex;
@@ -836,13 +860,292 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
+
+    /* ════ DAILY 24-HOUR ACCESS CODE LOCK SYSTEM ════ */
+    .access-lock-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      background: radial-gradient(circle at 50% 20%, rgba(124, 58, 237, 0.28), rgba(7, 10, 19, 0.94) 70%);
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .access-lock-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .access-lock-card {
+      width: 100%;
+      max-width: 410px;
+      background: rgba(22, 30, 49, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px 28px;
+      box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.85),
+                  0 0 45px rgba(124, 58, 237, 0.3);
+      text-align: center;
+      position: relative;
+      animation: lockCardPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes lockCardPop {
+      from {
+        opacity: 0;
+        transform: scale(0.92) translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .lock-icon-badge {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px auto;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, rgba(124, 58, 237, 0.08) 100%);
+      border: 1.5px solid rgba(168, 85, 247, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 0 24px rgba(124, 58, 237, 0.45);
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.4); transform: scale(1); }
+      50% { box-shadow: 0 0 32px rgba(168, 85, 247, 0.7); transform: scale(1.04); }
+    }
+
+    .access-title {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -0.4px;
+      margin-bottom: 6px;
+    }
+
+    .access-subtitle {
+      color: var(--text-muted);
+      font-size: 13.5px;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    .access-badge-hint {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .access-code-input {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      padding: 13px 12px;
+      text-transform: uppercase;
+      background: rgba(11, 15, 25, 0.95);
+      border: 2px solid rgba(124, 58, 237, 0.45);
+      border-radius: var(--radius-sm);
+      color: #ffffff;
+      width: 100%;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .access-code-input:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.28), 0 0 20px rgba(124, 58, 237, 0.3);
+    }
+
+    .access-code-input.shake {
+      animation: shake 0.4s ease-in-out;
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.3) !important;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .access-feedback {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      animation: feedbackFade 0.2s ease;
+    }
+
+    @keyframes feedbackFade {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .access-feedback.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    .access-feedback.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #86efac;
+    }
+
+    .access-feedback.info {
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      color: #a5f3fc;
+    }
+
+    .access-actions-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 18px 0;
+      color: var(--text-dim);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .access-actions-divider::before,
+    .access-actions-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .access-actions-divider span {
+      padding: 0 10px;
+    }
+
+    .send-code-btn {
+      margin-top: 0;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      font-size: 14px;
+    }
+
+    .send-code-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .send-code-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Top bar access status badge */
+    .access-status-pill {
+      margin-right: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--success);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .access-status-pill:hover {
+      background: rgba(16, 185, 129, 0.2);
+    }
   </style>
 </head>
 
 <body>
   <canvas id="confetti-canvas"></canvas>
 
+  <!-- ════ DAILY 24-HOUR ACCESS CODE LOCK OVERLAY ════ -->
+  <div id="access-lock-overlay" class="access-lock-overlay">
+    <div class="access-lock-card">
+      <div class="lock-icon-badge">
+        <span>🔐</span>
+      </div>
+      <h2 class="access-title">Enter access code</h2>
+      <p class="access-subtitle">
+        Enter today's code to unlock Math Battle<br>
+        <span class="access-badge-hint">Valid for 24 Hours</span>
+      </p>
+
+      <form id="access-code-form" onsubmit="handleAccessSubmit(event)">
+        <div class="form-group" style="margin-bottom: 14px;">
+          <input 
+            type="text" 
+            id="access-code-input" 
+            class="access-code-input" 
+            placeholder="6-digit code" 
+            maxlength="10" 
+            autocomplete="off" 
+            spellcheck="false"
+            required
+          />
+        </div>
+
+        <div id="access-feedback" class="access-feedback" style="display: none;"></div>
+
+        <button type="submit" id="btn-unlock-access" class="btn-primary">
+          <span>🚀 Unlock Access</span>
+        </button>
+      </form>
+
+      <div class="access-actions-divider">
+        <span>or</span>
+      </div>
+
+      <button type="button" id="btn-send-code" class="btn-secondary send-code-btn" onclick="handleSendCode()">
+        <span id="send-code-icon">📧</span>
+        <span id="send-code-text">Send Code</span>
+      </button>
+    </div>
+  </div>
+
   <div class="top-bar">
+    <div id="access-status-pill" class="access-status-pill" onclick="showAccessInfo()" title="Click to view daily access details" style="display: none;">
+      <span>🟢</span>
+      <span id="access-status-text">Access Active</span>
+    </div>
     <button class="icon-btn" id="sound-btn" onclick="toggleSound()" title="Sound Toggle">🔊</button>
   </div>
 
@@ -925,13 +1228,13 @@
 
           <div class="feedback wrong" id="create-err"></div>
 
-          <button class="btn-primary" onclick="createRoom()">
+          <button class="btn-primary" id="btn-create-room" onclick="createRoom()">
             <span>🚀 Create</span>
           </button>
 
           <button class="btn-secondary" onclick="startVsBot()"
             style="margin-top:10px; background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.35); color: #67e8f9;">
-            <span>🤖 Akela Khelo (Vs Computer)</span>
+            <span>🤖 Play Solo (Vs Computer)</span>
           </button>
         </div>
 
@@ -950,7 +1253,7 @@
 
           <div class="feedback wrong" id="join-err"></div>
 
-          <button class="btn-primary" onclick="joinRoom()">
+          <button class="btn-primary" id="btn-join-room" onclick="joinRoom()">
             <span>⚔️ Join</span>
           </button>
         </div>
@@ -963,8 +1266,8 @@
       <div class="glass-card">
         <div class="header-logo">
           <div class="badge">⚔️ Battle Lobby</div>
-          <h2 style="font-size: 22px; color:#fff; font-weight: 800; margin-bottom: 4px;">Dosto Ka Intezaar...</h2>
-          <p id="lobby-sub">Room code share karke dosto ko bulayein</p>
+          <h2 style="font-size: 22px; color:#fff; font-weight: 800; margin-bottom: 4px;">Waiting for Players...</h2>
+          <p id="lobby-sub">Share the room code to invite friends</p>
         </div>
 
         <div class="room-code-badge">
@@ -978,7 +1281,7 @@
 
         <div style="display: flex; gap: 8px; margin-bottom: 14px;">
           <button class="btn-secondary" id="copy-btn" onclick="copyCode()" style="margin-top:0; flex:1;">
-            <span>📋 Code Copy</span>
+            <span>📋 Copy Code</span>
           </button>
           <button class="btn-secondary" onclick="shareWhatsApp()"
             style="margin-top:0; flex:1; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #6ee7b7;">
@@ -991,7 +1294,7 @@
         </button>
 
         <div id="next-round-info" style="display:none; text-align:center; margin-top: 8px;">
-          <div class="feedback wait" id="next-round-status">Players ready ho rahe hain...</div>
+          <div class="feedback wait" id="next-round-status">Waiting for players to ready up...</div>
         </div>
 
         <button class="btn-secondary" onclick="leaveRoom()" style="margin-top:12px">
@@ -1020,7 +1323,7 @@
           <div class="timer-seconds" id="timer-val">10.0s</div>
         </div>
 
-        <!-- Arena Trackers -->
+        <!-- Arena Trackers (Dynamically rendered in startGame for all players) -->
         <div class="arena-grid" id="arena-grid">
           <div class="player-card active-user" id="card-p1">
             <div class="player-tag" id="name-p1">Player 1</div>
@@ -1082,35 +1385,12 @@
     <div id="screen-result" class="screen">
       <div class="glass-card">
         <div class="winner-banner">
-          <div class="winner-title" id="winner-text">Player Jeet Gaya!</div>
+          <div class="winner-title" id="winner-text">Player Wins!</div>
           <div class="winner-sub" id="winner-sub">Top Scorer</div>
         </div>
 
         <div class="results-grid" id="results-grid">
-          <div class="final-card" id="final-p1">
-            <div class="player-tag" id="final-name1">P1</div>
-            <div class="final-score-big" id="final-score1">0 pts</div>
-            <div class="final-meta" id="final-acc1">0/10 Sahi</div>
-            <div class="final-meta" id="final-time1">⏱️ 0.0s</div>
-          </div>
-          <div class="final-card" id="final-p2" style="display:none">
-            <div class="player-tag" id="final-name2">P2</div>
-            <div class="final-score-big" id="final-score2">0 pts</div>
-            <div class="final-meta" id="final-acc2">0/10 Sahi</div>
-            <div class="final-meta" id="final-time2">⏱️ 0.0s</div>
-          </div>
-          <div class="final-card" id="final-p3" style="display:none">
-            <div class="player-tag" id="final-name3">P3</div>
-            <div class="final-score-big" id="final-score3">0 pts</div>
-            <div class="final-meta" id="final-acc3">0/10 Sahi</div>
-            <div class="final-meta" id="final-time3">⏱️ 0.0s</div>
-          </div>
-          <div class="final-card" id="final-p4" style="display:none">
-            <div class="player-tag" id="final-name4">P4</div>
-            <div class="final-score-big" id="final-score4">0 pts</div>
-            <div class="final-meta" id="final-acc4">0/10 Sahi</div>
-            <div class="final-meta" id="final-time4">⏱️ 0.0s</div>
-          </div>
+          <!-- Dynamically populated in showResult() -->
         </div>
 
         <label>Detailed Question Breakdown</label>
@@ -1118,8 +1398,8 @@
           <!-- Populated dynamically -->
         </div>
 
-        <button class="btn-primary" onclick="playAgain()">
-          <span>🔄 Dobara Khelo (Next Round)</span>
+        <button class="btn-primary" id="btn-play-again" onclick="playAgain()">
+          <span>🔄 Play Again (Next Round)</span>
         </button>
         <button class="btn-secondary" onclick="leaveRoom()">
           <span>🏠 Home Screen</span>
@@ -1131,6 +1411,279 @@
 
 
   <script>
+    // ══════════════════════════════════════════════════════════════════════
+    // 🔐 DAILY 24-HOUR ACCESS CODE CONFIGURATION (GMAIL LINKED)
+    // ══════════════════════════════════════════════════════════════════════
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyxm2Knb_qt1x3fNpnmBa32Okt9ugZQvD4HzXtDTRa_7zppm2TAfN6Mo4eAeipTaSCY/exec";
+
+    const AUTH_TOKEN_KEY = 'mathbattle_access_token';
+    const AUTH_DATE_KEY = 'mathbattle_access_date';
+    const AUTH_EXPIRY_KEY = 'mathbattle_access_expiry';
+
+    let sendCodeCooldownTimer = null;
+    let autoLockInterval = null;
+
+    // Helper: Returns current date string formatted as YYYY-MM-DD in local time
+    function getTodayDateString() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Helper: Check if active session is valid for today (within 24 hours)
+    function isAccessValid() {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      const savedDate = localStorage.getItem(AUTH_DATE_KEY);
+      const savedExpiry = parseInt(localStorage.getItem(AUTH_EXPIRY_KEY) || '0', 10);
+      const today = getTodayDateString();
+
+      if (!token) return false;
+      // Expired if day has changed OR current time exceeds 24h expiry
+      if (savedDate !== today || Date.now() > savedExpiry) {
+        clearAccessStorage();
+        return false;
+      }
+      return true;
+    }
+
+    function clearAccessStorage() {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_DATE_KEY);
+      localStorage.removeItem(AUTH_EXPIRY_KEY);
+    }
+
+    function checkAccessOnLoad() {
+      const overlay = document.getElementById('access-lock-overlay');
+      const pill = document.getElementById('access-status-pill');
+
+      if (isAccessValid()) {
+        if (overlay) overlay.classList.add('hidden');
+        if (pill) pill.style.display = 'inline-flex';
+        updateAccessStatusBadge();
+        startAutoLockMonitor();
+      } else {
+        if (overlay) {
+          overlay.classList.remove('hidden');
+          const input = document.getElementById('access-code-input');
+          if (input) setTimeout(() => input.focus(), 300);
+        }
+        if (pill) pill.style.display = 'none';
+      }
+    }
+
+    function updateAccessStatusBadge() {
+      const expiry = parseInt(localStorage.getItem(AUTH_EXPIRY_KEY) || '0', 10);
+      const remainingMs = expiry - Date.now();
+      const textEl = document.getElementById('access-status-text');
+      if (textEl && remainingMs > 0) {
+        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+        textEl.textContent = `Access: ${hours}h ${minutes}m left`;
+      }
+    }
+
+    function startAutoLockMonitor() {
+      if (autoLockInterval) clearInterval(autoLockInterval);
+      autoLockInterval = setInterval(() => {
+        if (!isAccessValid()) {
+          clearInterval(autoLockInterval);
+          lockApp('Session expired (24 hours completed or date changed). Please enter today\'s code.');
+        } else {
+          updateAccessStatusBadge();
+        }
+      }, 30000); // Check every 30 seconds
+    }
+
+    function unlockApp() {
+      const overlay = document.getElementById('access-lock-overlay');
+      const pill = document.getElementById('access-status-pill');
+      if (overlay) overlay.classList.add('hidden');
+      if (pill) pill.style.display = 'inline-flex';
+      updateAccessStatusBadge();
+      startAutoLockMonitor();
+      if (typeof playSound === 'function') playSound('start');
+    }
+
+    function lockApp(message) {
+      clearAccessStorage();
+      const overlay = document.getElementById('access-lock-overlay');
+      const pill = document.getElementById('access-status-pill');
+      if (pill) pill.style.display = 'none';
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        showAccessFeedback(message || 'Website locked. Please enter today\'s code.', 'info');
+      }
+    }
+
+    function showAccessInfo() {
+      const expiry = parseInt(localStorage.getItem(AUTH_EXPIRY_KEY) || '0', 10);
+      const remainingMs = Math.max(0, expiry - Date.now());
+      const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+      const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+      const today = getTodayDateString();
+
+      const conf = confirm(`🔐 Math Battle Daily Access Details:\n\n• Active Date: ${today}\n• Remaining Time: ${hours} hours, ${minutes} minutes\n• Rule: Access is eligible for one whole day.\n\nDo you want to lock the app now?`);
+      if (conf) {
+        lockApp('You manually locked the app.');
+      }
+    }
+
+    function showAccessFeedback(msg, type) {
+      const fb = document.getElementById('access-feedback');
+      if (!fb) return;
+      fb.className = `access-feedback ${type}`;
+      fb.innerHTML = msg;
+      fb.style.display = 'flex';
+    }
+
+    // Triggered when user clicks "Send Code"
+    async function handleSendCode() {
+      const sendBtn = document.getElementById('btn-send-code');
+      const sendText = document.getElementById('send-code-text');
+      const sendIcon = document.getElementById('send-code-icon');
+
+      if (!GAS_WEBAPP_URL || GAS_WEBAPP_URL.trim() === '') {
+        showAccessFeedback('⚠️ <strong>Google Apps Script not connected yet.</strong><br/>Follow <code>ACCESS_CODE_SETUP.md</code> to connect your Gmail.<br/><em>(Tip for local testing: enter code <strong>123456</strong>)</em>', 'info');
+        return;
+      }
+
+      sendBtn.disabled = true;
+      sendText.textContent = 'Sending to Gmail...';
+      sendIcon.textContent = '⏳';
+      showAccessFeedback('Connecting to Google Script & sending email to Gmail...', 'info');
+
+      try {
+        const res = await fetch(`${GAS_WEBAPP_URL}?action=send_code&t=${Date.now()}`);
+        const data = await res.json();
+
+        if (data.success) {
+          showAccessFeedback(`✅ ${data.message || 'Today\'s access code has been sent to your Gmail!'}`, 'success');
+          startSendCooldown(60);
+        } else {
+          showAccessFeedback(`⚠️ ${data.message || 'Could not send code. Please try again.'}`, 'error');
+          sendBtn.disabled = false;
+          sendText.textContent = 'Send Code';
+          sendIcon.textContent = '📧';
+        }
+      } catch (err) {
+        console.error('GAS Send Code Error:', err);
+        showAccessFeedback('❌ Network error communicating with Google Apps Script.<br/>Make sure your Web App URL is deployed with access set to "Anyone".', 'error');
+        sendBtn.disabled = false;
+        sendText.textContent = 'Send Code';
+        sendIcon.textContent = '📧';
+      }
+    }
+
+    function startSendCooldown(seconds) {
+      const sendBtn = document.getElementById('btn-send-code');
+      const sendText = document.getElementById('send-code-text');
+      const sendIcon = document.getElementById('send-code-icon');
+      let remaining = seconds;
+
+      sendBtn.disabled = true;
+      sendIcon.textContent = '⏱️';
+
+      if (sendCodeCooldownTimer) clearInterval(sendCodeCooldownTimer);
+      sendCodeCooldownTimer = setInterval(() => {
+        remaining--;
+        if (remaining <= 0) {
+          clearInterval(sendCodeCooldownTimer);
+          sendBtn.disabled = false;
+          sendText.textContent = 'Send Code';
+          sendIcon.textContent = '📧';
+        } else {
+          sendText.textContent = `Resend in ${remaining}s`;
+        }
+      }, 1000);
+    }
+
+    // Triggered when user enters access code and hits "Unlock Access"
+    async function handleAccessSubmit(event) {
+      if (event) event.preventDefault();
+
+      const input = document.getElementById('access-code-input');
+      const submitBtn = document.getElementById('btn-unlock-access');
+      const enteredCode = (input ? input.value : '').trim();
+
+      if (!enteredCode) {
+        showAccessFeedback('Please enter the access code.', 'error');
+        if (input) {
+          input.classList.add('shake');
+          setTimeout(() => input.classList.remove('shake'), 400);
+          input.focus();
+        }
+        return;
+      }
+
+      // If Google Apps Script URL is not set yet, provide built-in demo passcode
+      if (!GAS_WEBAPP_URL || GAS_WEBAPP_URL.trim() === '') {
+        if (enteredCode === '123456' || enteredCode.toUpperCase() === 'MATH24') {
+          grantAccessSuccess(enteredCode, '✅ Demo Access Granted! (Valid for 24 hours)');
+          return;
+        } else {
+          showAccessFeedback('❌ Invalid code! (For local testing without Gmail, enter demo code: <strong>123456</strong>, or deploy Google Apps Script)', 'error');
+          if (input) {
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+          }
+          return;
+        }
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳ Verifying...</span>';
+      showAccessFeedback('Verifying today\'s code with Google...', 'info');
+
+      try {
+        const res = await fetch(`${GAS_WEBAPP_URL}?action=verify_code&code=${encodeURIComponent(enteredCode)}&t=${Date.now()}`);
+        const data = await res.json();
+
+        if (data.valid) {
+          grantAccessSuccess(enteredCode, '✅ Code verified! Access unlocked for 24 hours.');
+        } else {
+          showAccessFeedback(`❌ ${data.message || 'Invalid code for today! Please check your Gmail or click Send Code.'}`, 'error');
+          if (input) {
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+          }
+          if (typeof playSound === 'function') playSound('wrong');
+        }
+      } catch (err) {
+        console.error('GAS Verification Error:', err);
+        showAccessFeedback('❌ Failed to verify code. Check internet connection or Google Apps Script deployment.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>🚀 Unlock Access</span>';
+      }
+    }
+
+    function grantAccessSuccess(code, msg) {
+      const today = getTodayDateString();
+      const expiry = Date.now() + (24 * 60 * 60 * 1000); // 24 hours from right now
+
+      localStorage.setItem(AUTH_TOKEN_KEY, code);
+      localStorage.setItem(AUTH_DATE_KEY, today);
+      localStorage.setItem(AUTH_EXPIRY_KEY, String(expiry));
+
+      showAccessFeedback(msg, 'success');
+      if (typeof playSound === 'function') playSound('correct');
+
+      setTimeout(() => {
+        unlockApp();
+        const fb = document.getElementById('access-feedback');
+        if (fb) fb.style.display = 'none';
+        const input = document.getElementById('access-code-input');
+        if (input) input.value = '';
+      }, 700);
+    }
+
+    // Run access verification immediately on page load
+    document.addEventListener('DOMContentLoaded', checkAccessOnLoad);
+    window.addEventListener('load', checkAccessOnLoad);
+    checkAccessOnLoad();
+
     // ════ Firebase REST Endpoint ════
     const FIREBASE = 'https://battle-26320-default-rtdb.firebaseio.com/';
 
@@ -1353,6 +1906,35 @@
       document.getElementById('tab-join').className = tab === 'join' ? 'tab-btn active' : 'tab-btn';
       document.getElementById('form-create').style.display = tab === 'create' ? 'block' : 'none';
       document.getElementById('form-join').style.display = tab === 'join' ? 'block' : 'none';
+    }
+
+    function escapeHtml(str) {
+      if (str === undefined || str === null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function setBtnLoading(btnId, isLoading, loadingText, defaultHtml) {
+      const btn = typeof btnId === 'string' ? document.getElementById(btnId) : btnId;
+      if (!btn) return;
+      if (isLoading) {
+        if (!btn.dataset.origHtml) {
+          btn.dataset.origHtml = btn.innerHTML;
+        }
+        btn.disabled = true;
+        btn.innerHTML = `<span class="btn-spinner"></span> <span>${loadingText || 'Please wait...'}</span>`;
+      } else {
+        btn.disabled = false;
+        if (defaultHtml) {
+          btn.innerHTML = defaultHtml;
+        } else if (btn.dataset.origHtml) {
+          btn.innerHTML = btn.dataset.origHtml;
+        }
+      }
     }
 
     // ════ Helpers: Roles, Codes, Math Generation ════
@@ -1737,7 +2319,7 @@
       checkBotGameEnd();
     }
 
-    // Entry point for the "Akela Khelo (Vs Computer)" button on the home screen.
+    // Entry point for the "Play Solo (Vs Computer)" button on the home screen.
     async function startVsBot() {
       initAudio();
       const nameInput = document.getElementById('create-name').value.trim();
@@ -1745,7 +2327,7 @@
       errEl.textContent = '';
 
       if (!nameInput) {
-        errEl.textContent = '❌ Pehle apna naam daalo!';
+        errEl.textContent = '❌ Please enter your name first!';
         return;
       }
 
@@ -1818,9 +2400,11 @@
       errEl.textContent = '';
 
       if (!nameInput) {
-        errEl.textContent = '❌ Pehle apna naam daalo!';
+        errEl.textContent = '❌ Please enter your name first!';
         return;
       }
+
+      setBtnLoading('btn-create-room', true, 'Creating Room...');
 
       totalQ = parseInt(document.getElementById('total-q').value, 10);
       timerPerQ = parseInt(document.getElementById('timer-select').value, 10);
@@ -1860,7 +2444,9 @@
         showScreen('waiting');
         startWaitingPoll();
       } catch (err) {
-        errEl.textContent = '❌ Connection error. Dobara try karein.';
+        errEl.textContent = '❌ Connection error. Please try again.';
+      } finally {
+        setBtnLoading('btn-create-room', false);
       }
     }
 
@@ -1872,52 +2458,100 @@
       errEl.textContent = '';
 
       if (!nameInput) {
-        errEl.textContent = '❌ Apna naam daalo!';
+        errEl.textContent = '❌ Please enter your name!';
         return;
       }
       if (!codeInput || codeInput.length < 4) {
-        errEl.textContent = '❌ Sahi 4-character Room Code daalo!';
+        errEl.textContent = '❌ Enter a valid 4-character Room Code!';
         return;
       }
 
-      const room = await fbGet(`mathbattle_${codeInput}`);
-      if (!room || room.status === 'deleted') {
-        errEl.textContent = '❌ Room nahi mila ya expire ho gaya!';
-        return;
+      setBtnLoading('btn-join-room', true, 'Joining Room...');
+
+      try {
+        let assignedRole = null;
+        let verifiedRoom = null;
+
+        // Claim-and-verify retry loop to eliminate race conditions between simultaneous joiners
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const freshRoom = await fbGet(`mathbattle_${codeInput}`);
+          if (!freshRoom || freshRoom.status === 'deleted') {
+            errEl.textContent = '❌ Room not found or has expired!';
+            setBtnLoading('btn-join-room', false);
+            return;
+          }
+
+          if (freshRoom.status === 'playing') {
+            errEl.textContent = '❌ Match has already started!';
+            setBtnLoading('btn-join-room', false);
+            return;
+          }
+
+          // Check if name is already taken in the room
+          const existingRoles = playerRoles(freshRoom);
+          const nameTaken = existingRoles.some(r => freshRoom[r] && freshRoom[r].trim().toLowerCase() === nameInput.toLowerCase());
+          if (nameTaken) {
+            errEl.textContent = '❌ A player with this name is already in the room! Please use a different name.';
+            setBtnLoading('btn-join-room', false);
+            return;
+          }
+
+          const openRole = ['p2', 'p3', 'p4'].find(role => !freshRoom[role]);
+          if (!openRole) {
+            errEl.textContent = '❌ This room is full (Max 4 players)!';
+            setBtnLoading('btn-join-room', false);
+            return;
+          }
+
+          // Unique claim token for atomic verification
+          const claimToken = Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+          const patch = {};
+          patch[openRole] = nameInput;
+          patch[openRole + '_token'] = claimToken;
+          patch[openRole + 'score'] = 0;
+          patch[openRole + 'q'] = 0;
+          patch[openRole + 'done'] = false;
+          patch[openRole + 'ready'] = false;
+          patch[openRole + 'streak'] = 0;
+          patch[openRole + 'time'] = 0;
+          patch[openRole + 'history'] = [];
+
+          await fbPatch(`mathbattle_${codeInput}`, patch);
+
+          // Verify whether our write claimed this slot
+          const checkRoom = await fbGet(`mathbattle_${codeInput}`);
+          if (checkRoom && checkRoom[openRole + '_token'] === claimToken) {
+            assignedRole = openRole;
+            verifiedRoom = checkRoom;
+            break;
+          }
+
+          // Another player took the slot in this exact millisecond, wait a short random time and retry next slot
+          await new Promise(res => setTimeout(res, 100 + Math.random() * 150));
+        }
+
+        if (!assignedRole) {
+          errEl.textContent = '❌ High traffic conflict. Please tap Join again!';
+          setBtnLoading('btn-join-room', false);
+          return;
+        }
+
+        roomCode = codeInput;
+        myName = nameInput;
+        myRole = assignedRole;
+        totalQ = verifiedRoom.totalQ || 10;
+        timerPerQ = verifiedRoom.timerPerQ !== undefined ? verifiedRoom.timerPerQ : 10;
+        window.currentRoomRound = verifiedRoom.round || 1;
+
+        document.getElementById('display-code').textContent = roomCode;
+        renderLobby(verifiedRoom);
+        showScreen('waiting');
+        startWaitingPoll();
+      } catch (err) {
+        errEl.textContent = '❌ Connection error. Please try again.';
+      } finally {
+        setBtnLoading('btn-join-room', false);
       }
-
-      if (room.status === 'playing') {
-        errEl.textContent = '❌ Match pehle se shuru ho chuka hai!';
-        return;
-      }
-
-      const openRole = ['p2', 'p3', 'p4'].find(role => !room[role]);
-      if (!openRole) {
-        errEl.textContent = '❌ Yeh room full hai (Max 4 players)!';
-        return;
-      }
-
-      roomCode = codeInput;
-      myName = nameInput;
-      myRole = openRole;
-      totalQ = room.totalQ || 10;
-      timerPerQ = room.timerPerQ !== undefined ? room.timerPerQ : 10;
-      window.currentRoomRound = room.round || 1;
-
-      const patch = {};
-      patch[myRole] = myName;
-      patch[myRole + 'score'] = 0;
-      patch[myRole + 'q'] = 0;
-      patch[myRole + 'done'] = false;
-      patch[myRole + 'ready'] = false;
-
-      await fbPatch(`mathbattle_${roomCode}`, patch);
-      document.getElementById('display-code').textContent = roomCode;
-
-      room[myRole] = myName;
-      renderLobby(room);
-      showScreen('waiting');
-      startWaitingPoll();
     }
 
     // ════ Lobby Rendering & Polling ════
@@ -1929,7 +2563,17 @@
       list.innerHTML = roles.map((role, idx) => {
         const isSelf = role === myRole;
         const isHost = role === 'p1';
-        const roleLabel = isHost ? 'Host' : `Player ${idx + 1}`;
+        let roleBadge = '';
+        if (isSelf && isHost) {
+          roleBadge = '<strong>(You / Host)</strong>';
+        } else if (isSelf) {
+          roleBadge = '<strong>(You)</strong>';
+        } else if (isHost) {
+          roleBadge = '(Host)';
+        } else {
+          roleBadge = `(Player ${idx + 1})`;
+        }
+
         const readyStatus = room.status === 'waiting_next'
           ? (room[role + 'ready'] ? '✅ Ready' : '⏳ Waiting')
           : '🟢 Connected';
@@ -1938,7 +2582,7 @@
           <div class="player-joined">
             <div class="player-info">
               <span class="dot ${room[role + 'ready'] || room.status !== 'waiting_next' ? 'green' : 'gray'}"></span>
-              <span>${room[role]} ${isSelf ? '<strong>(Creator)</strong>' : `(${roleLabel})`}</span>
+              <span>${escapeHtml(room[role])} ${roleBadge}</span>
             </div>
             <span style="font-size:13px; color:var(--text-muted);">${readyStatus}</span>
           </div>
@@ -1950,7 +2594,7 @@
           <div class="player-joined" style="border-style:dashed;">
             <div class="player-info">
               <span class="dot gray"></span>
-              <span style="color:var(--text-dim)">Slot Open (${4 - roles.length} Left)...</span>
+              <span style="color:var(--text-dim)">Open Slot (${4 - roles.length} Left)...</span>
             </div>
           </div>
         `;
@@ -1970,7 +2614,7 @@
       if (isNextRound) {
         const readyCount = roles.filter(role => room[role + 'ready']).length;
         document.getElementById('next-round-status').textContent =
-          `${readyCount}/${roles.length} players ready. Sabke ready hone ka wait ho raha hai...`;
+          `${readyCount}/${roles.length} players ready. Waiting for everyone to ready up...`;
       }
     }
 
@@ -1980,14 +2624,14 @@
         const room = await fbGet(`mathbattle_${roomCode}`);
         if (!room || room.status === 'deleted') {
           clearInterval(pollTimer);
-          alert('Host ne game chhod diya ya room close ho gaya.');
+          alert('The host left or the room has been closed.');
           goHome();
           return;
         }
 
         renderLobby(room);
 
-        if (room.status === 'playing' && (room.round || 1) >= (window.currentRoomRound || 1)) {
+        if (room.status === 'playing') {
           clearInterval(pollTimer);
           startGame(room);
         }
@@ -1996,16 +2640,24 @@
 
     async function startRoomGame() {
       if (myRole !== 'p1') return;
-      const room = await fbGet(`mathbattle_${roomCode}`);
-      if (!room || playerRoles(room).length < 2) {
-        alert('Kam se kam 2 players hona zaroori hai!');
-        return;
-      }
+      const startBtn = document.getElementById('start-room-btn');
+      setBtnLoading(startBtn, true, 'Starting Battle...');
 
-      await fbPatch(`mathbattle_${roomCode}`, {
-        status: 'playing',
-        round: room.round || 1
-      });
+      try {
+        const room = await fbGet(`mathbattle_${roomCode}`);
+        if (!room || playerRoles(room).length < 2) {
+          alert('At least 2 players are required to start the match!');
+          setBtnLoading(startBtn, false);
+          return;
+        }
+
+        await fbPatch(`mathbattle_${roomCode}`, {
+          status: 'playing',
+          round: room.round || 1
+        });
+      } catch (err) {
+        setBtnLoading(startBtn, false);
+      }
     }
 
     // ════ Gameplay Arena ════
@@ -2013,6 +2665,9 @@
       clearInterval(pollTimer);
       clearInterval(qTimerInterval);
       stopConfetti();
+
+      const startBtn = document.getElementById('start-room-btn');
+      setBtnLoading(startBtn, false);
 
       resultShown = false;
       questions = room.questions || [];
@@ -2027,22 +2682,28 @@
       myHistory = [];
 
       document.getElementById('live-round-badge').textContent = `Round ${room.round || 1}`;
-      document.getElementById('name-p1').textContent = `${myName} (Tu)`;
-      document.getElementById('score-p1').textContent = '0 pts';
-      document.getElementById('qtrack-p1').textContent = `Q0/${totalQ}`;
 
+      // Dynamically render arena tracker cards for ALL players in the match
       const activeRoles = playerRoles(room);
-      ['p2', 'p3', 'p4'].forEach(role => {
-        const card = document.getElementById(`card-${role}`);
-        if (room[role] && role !== myRole) {
-          card.style.display = 'block';
-          document.getElementById(`name-${role}`).textContent = room[role];
-          document.getElementById(`qtrack-${role}`).textContent = `Q0/${totalQ}`;
-          document.getElementById(`status-${role}`).textContent = 'Playing...';
-        } else {
-          card.style.display = 'none';
+      const grid = document.getElementById('arena-grid');
+      grid.innerHTML = activeRoles.map(role => {
+        const isSelf = role === myRole;
+        const isHost = role === 'p1';
+        let label = escapeHtml(room[role] || role);
+        if (isSelf) {
+          label += ' (You)';
+        } else if (isHost) {
+          label += ' (Host)';
         }
-      });
+
+        return `
+          <div class="player-card ${isSelf ? 'active-user' : ''}" id="card-${role}">
+            <div class="player-tag" id="name-${role}">${label}</div>
+            <div class="player-q-big" id="qtrack-${role}">Q0/${totalQ}</div>
+            <div class="player-sub" id="${isSelf ? `score-${role}` : `status-${role}`}">${isSelf ? '0 pts' : 'Playing...'}</div>
+          </div>
+        `;
+      }).join('');
 
       document.getElementById('timer-wrapper').style.display = timerPerQ > 0 ? 'block' : 'none';
 
@@ -2130,7 +2791,7 @@
 
       if (valStr === '' || isNaN(Number(valStr))) {
         const fb = document.getElementById('feedback');
-        fb.textContent = '⚠️ Pehle number likho!';
+        fb.textContent = '⚠️ Please enter a number!';
         fb.className = 'feedback wait';
         return;
       }
@@ -2162,12 +2823,12 @@
         myScore += pointsGained;
 
         playSound('correct');
-        fb.textContent = `✅ Sahi Jawab! +${pointsGained} pts (${timeTaken}s)`;
+        fb.textContent = `✅ Correct! +${pointsGained} pts (${timeTaken}s)`;
         fb.className = 'feedback correct';
       } else {
         streak = 0;
         playSound('wrong');
-        fb.textContent = `❌ Galat! Sahi answer: ${currentQuest.ans}`;
+        fb.textContent = `❌ Incorrect! Answer: ${currentQuest.ans}`;
         fb.className = 'feedback wrong';
       }
 
@@ -2181,8 +2842,10 @@
         timedOut: false
       });
 
-      document.getElementById('score-p1').textContent = `${myScore} pts`;
-      document.getElementById('qtrack-p1').textContent = `Q${currentQ + 1}/${totalQ}`;
+      const myScoreEl = document.getElementById(`score-${myRole}`);
+      if (myScoreEl) myScoreEl.textContent = `${myScore} pts`;
+      const myQTrackEl = document.getElementById(`qtrack-${myRole}`);
+      if (myQTrackEl) myQTrackEl.textContent = `Q${currentQ + 1}/${totalQ}`;
 
       if (!isBotMode) {
         const patch = {};
@@ -2213,7 +2876,7 @@
       playSound('timeout');
       const currentQuest = questions[currentQ];
       const fb = document.getElementById('feedback');
-      fb.textContent = `⏰ Time's Up! 0 pts. Sahi: ${currentQuest.ans}`;
+      fb.textContent = `⏰ Time's Up! 0 pts. Correct: ${currentQuest.ans}`;
       fb.className = 'feedback wrong';
 
       myHistory.push({
@@ -2226,7 +2889,8 @@
         timedOut: true
       });
 
-      document.getElementById('qtrack-p1').textContent = `Q${currentQ + 1}/${totalQ}`;
+      const myQTrackEl = document.getElementById(`qtrack-${myRole}`);
+      if (myQTrackEl) myQTrackEl.textContent = `Q${currentQ + 1}/${totalQ}`;
 
       if (!isBotMode) {
         const patch = {};
@@ -2303,7 +2967,7 @@
         const room = await fbGet(`mathbattle_${roomCode}`);
         if (!room || room.status === 'deleted') {
           clearInterval(pollTimer);
-          alert('Room disconnect ho gaya.');
+          alert('The room has been disconnected.');
           goHome();
           return;
         }
@@ -2334,8 +2998,8 @@
       document.querySelector('.submit-btn').style.display = 'none';
       document.getElementById('game-numpad').style.display = 'none';
       document.getElementById('timer-wrapper').style.display = 'none';
-      document.getElementById('q-display').textContent = '🏁 Tera round khatam!';
-      document.getElementById('q-counter').textContent = 'Opponents ka wait ho raha hai...';
+      document.getElementById('q-display').textContent = '🏁 Round Complete!';
+      document.getElementById('q-counter').textContent = 'Waiting for opponents...';
 
       const fb = document.getElementById('feedback');
       fb.textContent = '⏳ Waiting for other players to finish...';
@@ -2389,6 +3053,7 @@
       if (resultShown) return;
       resultShown = true;
       clearInterval(pollTimer);
+      setBtnLoading('btn-play-again', false);
 
       const roles = playerRoles(room);
       const ranked = roles.map(role => ({
@@ -2405,40 +3070,32 @@
 
       const winEl = document.getElementById('winner-text');
       if (tied) {
-        winEl.textContent = 'Tie!';
+        winEl.textContent = 'Tie Match!';
         winEl.style.color = 'var(--accent)';
         winEl.style.textShadow = '0 0 16px var(--accent-glow)';
       } else {
-        winEl.textContent = `${winner.name} Jeet Gaya!`;
+        winEl.textContent = `${winner.name} Wins!`;
         winEl.style.color = 'var(--success)';
         winEl.style.textShadow = '0 0 16px var(--success-glow)';
       }
-      document.getElementById('winner-sub').textContent = tied ? `${winner.score} pts each` : `${winner.score} pts (${winner.time}s)`;
-      // trophy icon removed
+      document.getElementById('winner-sub').textContent = tied ? `Tied at ${winner.score} pts each` : `Top Scorer • ${winner.score} pts (${winner.time}s)`;
 
-      ['p1', 'p2', 'p3', 'p4'].forEach(role => {
-        const player = ranked.find(item => item.role === role);
-        const card = document.getElementById(`final-${role}`);
-        if (!card) return;
-        if (!player) {
-          card.style.display = 'none';
-          return;
-        }
-        const num = role.slice(1);
-        card.style.display = 'block';
-        const nameEl = document.getElementById(`final-name${num}`);
-        const scoreEl = document.getElementById(`final-score${num}`);
-        const accEl = document.getElementById(`final-acc${num}`);
-        const timeEl = document.getElementById(`final-time${num}`);
+      const resultsGrid = document.getElementById('results-grid');
+      resultsGrid.innerHTML = ranked.map((player, idx) => {
+        const isWinner = !tied && idx === 0;
+        const isSelf = player.role === myRole;
+        const rankMedal = idx === 0 ? '🥇 ' : (idx === 1 ? '🥈 ' : (idx === 2 ? '🥉 ' : ''));
+        const correctCount = player.history.filter(item => item.correct).length;
 
-        if (nameEl) nameEl.textContent = player.name;
-        if (scoreEl) scoreEl.textContent = `${player.score} pts`;
-        if (accEl) accEl.textContent = `${player.history.filter(item => item.correct).length}/${totalQ} Sahi`;
-        if (timeEl) timeEl.textContent = `⏱️ Total: ${player.time}s`;
-
-        const isWinner = !tied && player.role === winner.role;
-        card.className = isWinner ? 'final-card winner' : 'final-card';
-      });
+        return `
+          <div class="final-card ${isWinner ? 'winner' : ''}">
+            <div class="player-tag">${rankMedal}${escapeHtml(player.name)}${isSelf ? ' (You)' : ''}</div>
+            <div class="final-score-big">${player.score} pts</div>
+            <div class="final-meta">${correctCount}/${totalQ} Correct</div>
+            <div class="final-meta">⏱️ ${player.time}s</div>
+          </div>
+        `;
+      }).join('');
 
       // Breakdown list
       const bList = document.getElementById('breakdown-list');
@@ -2656,6 +3313,8 @@
       totalTimeTaken = 0;
       myHistory = [];
 
+      setBtnLoading('btn-play-again', true, 'Preparing Next Round...');
+
       if (isBotMode) {
         currentQ = 0;
         maxStreak = 0;
@@ -2673,6 +3332,7 @@
           ...resetPlayerFields()
         };
 
+        setBtnLoading('btn-play-again', false);
         startGame(room);
         runBotLoop();
         return;
@@ -2685,6 +3345,7 @@
 
       document.getElementById('display-code').textContent = roomCode;
       showScreen('waiting');
+      setBtnLoading('btn-play-again', false);
       startNextRoundPoll();
     }
 
@@ -2735,11 +3396,11 @@
       navigator.clipboard.writeText(roomCode).catch(() => { });
       const btn = document.getElementById('copy-btn');
       btn.innerHTML = '<span>✅ Copied!</span>';
-      setTimeout(() => btn.innerHTML = '<span>📋 Code Copy</span>', 2000);
+      setTimeout(() => btn.innerHTML = '<span>📋 Copy Code</span>', 2000);
     }
 
     function shareWhatsApp() {
-      const text = `🔥 Aaja Math Battle khelte hain! Room Code: *${roomCode}*\nJoin link khol ke code daalo!`;
+      const text = `🔥 Let's play Math Battle! Room Code: *${roomCode}*\nEnter this code to join the match!`;
       const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(url, '_blank');
     }
@@ -2777,6 +3438,11 @@
       clearInterval(pollTimer);
       clearInterval(qTimerInterval);
       stopBotLoop();
+
+      setBtnLoading('btn-create-room', false);
+      setBtnLoading('btn-join-room', false);
+      setBtnLoading('start-room-btn', false);
+      setBtnLoading('btn-play-again', false);
 
       myRole = null;
       roomCode = '';
